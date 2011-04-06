@@ -4,20 +4,27 @@ namespace Daemon.Data
 {
 	errordomain DataAccessError
 	{
-		OpenFailed
+		OpenFailed,
+		WriteError
+	}
+	
+	public enum EventTypes
+	{
+		Joined = 0,
+		Left = 1,
+		ChangedName = 2
 	}
 
-	public class DataAccess
+	public interface IDataAccess : Object
 	{
-		private Database _database;
-	
-		public DataAccess()
-		{
-			int result = Database.open("data.db", out _database);
-			if (result != Sqlite.OK)
-			{
-				throw new DataAccessError.OpenFailed("Could not open Database");
-			}
-		}
+		public abstract void UserJoined(string username, string channel, string server);
+		public abstract void UserLeft(string username, string channel, string server);
+		public abstract void UserChangedName(string oldUsername, string newUsername, string channel, string server);
+		public abstract void ChatMessage(Message message, string channel, string server);
+		
+		public abstract DateTime? UserLastSeen(string username, string channel, string server);
+		public abstract Message[] GetLog(string channel, string server);
+		
+		public abstract void Init(string? logPath);
 	}
 }

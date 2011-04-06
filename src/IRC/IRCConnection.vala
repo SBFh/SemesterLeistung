@@ -1,6 +1,6 @@
 namespace Daemon.IRC
 {
-	public class IRCConnection
+	public class IRCConnection : Object
 	{
 		private SocketClient _connection;
 	
