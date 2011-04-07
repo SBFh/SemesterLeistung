@@ -2,16 +2,16 @@ using Daemon.Data;
 
 namespace Daemon
 {
-	errordomain PluginError
+	public errordomain PluginError
 	{
 		LibraryError
 	}
 
 	public class PluginManager : Object
 	{
-		public static IDataAccess DataAccess { get; private set; }
+		public static IDataAccess? DataAccess { get; private set; }
 		
-		public static IDataAccess InitDataAccess(string? pluginPath, string? logPath)
+		public static IDataAccess? InitDataAccess(string? pluginPath, string? logPath) throws PluginError
 		{
 			IDataAccess result;
 			
@@ -26,7 +26,15 @@ namespace Daemon
 				result = registrar.Create();
 			}
 			
-			result.Init(logPath);
+			try
+			{
+				result.Init(logPath);
+			}
+			catch (DataAccessError error)
+			{
+				stdout.printf("Error initializing Data Access Plugin: %s", error.message);
+				return null;
+			}
 			
 			DataAccess = result;
 			
