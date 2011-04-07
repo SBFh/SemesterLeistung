@@ -37,7 +37,11 @@ host_triplet = i686-pc-linux-gnu
 bin_PROGRAMS = SemesterLeistung$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	SemesterLeistung_vala.stamp main.c
+	Data/IDataAccess.c Data/SqliteData.c Events/ChangeNameEvent.c \
+	Events/Event.c Events/MessageEvent.c Events/StatusEvent.c \
+	Helpers/DateTimeConverter.c IRC/IRCConnection.c \
+	PluginManager.c PluginRegistrar.c SemesterLeistung_vala.stamp \
+	main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -49,11 +53,19 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
-am_SemesterLeistung_OBJECTS = main.$(OBJEXT) $(am__objects_1)
+am_SemesterLeistung_OBJECTS = main.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
+	PluginManager.$(OBJEXT) IRCConnection.$(OBJEXT) \
+	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
+	DateTimeConverter.$(OBJEXT) Event.$(OBJEXT) \
+	StatusEvent.$(OBJEXT) ChangeNameEvent.$(OBJEXT) \
+	MessageEvent.$(OBJEXT) $(am__objects_1)
 SemesterLeistung_OBJECTS = $(am_SemesterLeistung_OBJECTS)
 am__DEPENDENCIES_1 =
 SemesterLeistung_DEPENDENCIES = $(am__DEPENDENCIES_1) \
 	$(am__DEPENDENCIES_1)
+SemesterLeistung_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(SemesterLeistung_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I. -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -75,13 +87,13 @@ DIST_SOURCES = $(SemesterLeistung_SOURCES)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-ACLOCAL = ${SHELL} /home/simon/SemesterLeistung/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/simon/Projects/SemesterLeistung/missing --run aclocal-1.11
 ALL_LINGUAS = 
-AMTAR = ${SHELL} /home/simon/SemesterLeistung/missing --run tar
+AMTAR = ${SHELL} /home/simon/Projects/SemesterLeistung/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/simon/SemesterLeistung/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/simon/SemesterLeistung/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/simon/SemesterLeistung/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/simon/Projects/SemesterLeistung/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/simon/Projects/SemesterLeistung/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/simon/Projects/SemesterLeistung/missing --run automake-1.11
 AWK = gawk
 CATALOGS = 
 CATOBJEXT = .gmo
@@ -125,8 +137,8 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
-MAINT = 
-MAKEINFO = ${SHELL} /home/simon/SemesterLeistung/missing --run makeinfo
+MAINT = #
+MAKEINFO = ${SHELL} /home/simon/Projects/SemesterLeistung/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 MKINSTALLDIRS = ./mkinstalldirs
 MSGFMT = /usr/bin/msgfmt
@@ -164,10 +176,10 @@ USE_NLS = yes
 VALAC = /usr/local/bin/valac
 VERSION = 0.1.0
 XGETTEXT = /usr/bin/xgettext
-abs_builddir = /home/simon/SemesterLeistung/src
-abs_srcdir = /home/simon/SemesterLeistung/src
-abs_top_builddir = /home/simon/SemesterLeistung
-abs_top_srcdir = /home/simon/SemesterLeistung
+abs_builddir = /home/simon/Projects/SemesterLeistung/src
+abs_srcdir = /home/simon/Projects/SemesterLeistung/src
+abs_top_builddir = /home/simon/Projects/SemesterLeistung
+abs_top_srcdir = /home/simon/Projects/SemesterLeistung
 ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
 am__include = include
@@ -195,7 +207,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/simon/SemesterLeistung/install-sh
+install_sh = ${SHELL} /home/simon/Projects/SemesterLeistung/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -223,10 +235,31 @@ AM_CPPFLAGS = \
 
 SemesterLeistung_SOURCES = \
 	main.vala \
+	PluginRegistrar.vala \
+	PluginManager.vala \
+	IRC/IRCConnection.vala \
+	Data/IDataAccess.vala \
+	Data/SqliteData.vala \
+	Helpers/DateTimeConverter.vala \
+	Events/Event.vala \
+	Events/StatusEvent.vala \
+	Events/ChangeNameEvent.vala \
+	Events/MessageEvent.vala \
 	$(NULL)
 
 SemesterLeistung_LDADD = \
 	$(SEMESTERLEISTUNG_LIBS) \
+	$(NULL)
+
+SemesterLeistung_LDFLAGS = \
+	-lsqlite3 \
+	-lgio-2.0 \
+	-lgmodule-2.0
+
+SemesterLeistung_VALAFLAGS = \
+	--pkg gio-2.0 \
+	--pkg sqlite3 \
+	--pkg gmodule-2.0 \
 	$(NULL)
 
 EXTRA_DIST = \
@@ -239,7 +272,7 @@ all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .c .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: # $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -264,9 +297,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: # $(am__configure_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): # $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 install-binPROGRAMS: $(bin_PROGRAMS)
@@ -314,7 +347,7 @@ clean-binPROGRAMS:
 	rm -f $$list
 SemesterLeistung$(EXEEXT): $(SemesterLeistung_OBJECTS) $(SemesterLeistung_DEPENDENCIES) 
 	@rm -f SemesterLeistung$(EXEEXT)
-	$(LINK) $(SemesterLeistung_OBJECTS) $(SemesterLeistung_LDADD) $(LIBS)
+	$(SemesterLeistung_LINK) $(SemesterLeistung_OBJECTS) $(SemesterLeistung_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -322,6 +355,16 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+include ./$(DEPDIR)/ChangeNameEvent.Po
+include ./$(DEPDIR)/DateTimeConverter.Po
+include ./$(DEPDIR)/Event.Po
+include ./$(DEPDIR)/IDataAccess.Po
+include ./$(DEPDIR)/IRCConnection.Po
+include ./$(DEPDIR)/MessageEvent.Po
+include ./$(DEPDIR)/PluginManager.Po
+include ./$(DEPDIR)/PluginRegistrar.Po
+include ./$(DEPDIR)/SqliteData.Po
+include ./$(DEPDIR)/StatusEvent.Po
 include ./$(DEPDIR)/main.Po
 
 .c.o:
@@ -344,13 +387,175 @@ include ./$(DEPDIR)/main.Po
 #	source='$<' object='$@' libtool=yes \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(LTCOMPILE) -c -o $@ $<
+
+IRCConnection.o: IRC/IRCConnection.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IRCConnection.o -MD -MP -MF $(DEPDIR)/IRCConnection.Tpo -c -o IRCConnection.o `test -f 'IRC/IRCConnection.c' || echo '$(srcdir)/'`IRC/IRCConnection.c
+	$(am__mv) $(DEPDIR)/IRCConnection.Tpo $(DEPDIR)/IRCConnection.Po
+#	source='IRC/IRCConnection.c' object='IRCConnection.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IRCConnection.o `test -f 'IRC/IRCConnection.c' || echo '$(srcdir)/'`IRC/IRCConnection.c
+
+IRCConnection.obj: IRC/IRCConnection.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IRCConnection.obj -MD -MP -MF $(DEPDIR)/IRCConnection.Tpo -c -o IRCConnection.obj `if test -f 'IRC/IRCConnection.c'; then $(CYGPATH_W) 'IRC/IRCConnection.c'; else $(CYGPATH_W) '$(srcdir)/IRC/IRCConnection.c'; fi`
+	$(am__mv) $(DEPDIR)/IRCConnection.Tpo $(DEPDIR)/IRCConnection.Po
+#	source='IRC/IRCConnection.c' object='IRCConnection.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IRCConnection.obj `if test -f 'IRC/IRCConnection.c'; then $(CYGPATH_W) 'IRC/IRCConnection.c'; else $(CYGPATH_W) '$(srcdir)/IRC/IRCConnection.c'; fi`
+
+IDataAccess.o: Data/IDataAccess.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IDataAccess.o -MD -MP -MF $(DEPDIR)/IDataAccess.Tpo -c -o IDataAccess.o `test -f 'Data/IDataAccess.c' || echo '$(srcdir)/'`Data/IDataAccess.c
+	$(am__mv) $(DEPDIR)/IDataAccess.Tpo $(DEPDIR)/IDataAccess.Po
+#	source='Data/IDataAccess.c' object='IDataAccess.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IDataAccess.o `test -f 'Data/IDataAccess.c' || echo '$(srcdir)/'`Data/IDataAccess.c
+
+IDataAccess.obj: Data/IDataAccess.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IDataAccess.obj -MD -MP -MF $(DEPDIR)/IDataAccess.Tpo -c -o IDataAccess.obj `if test -f 'Data/IDataAccess.c'; then $(CYGPATH_W) 'Data/IDataAccess.c'; else $(CYGPATH_W) '$(srcdir)/Data/IDataAccess.c'; fi`
+	$(am__mv) $(DEPDIR)/IDataAccess.Tpo $(DEPDIR)/IDataAccess.Po
+#	source='Data/IDataAccess.c' object='IDataAccess.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IDataAccess.obj `if test -f 'Data/IDataAccess.c'; then $(CYGPATH_W) 'Data/IDataAccess.c'; else $(CYGPATH_W) '$(srcdir)/Data/IDataAccess.c'; fi`
+
+SqliteData.o: Data/SqliteData.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT SqliteData.o -MD -MP -MF $(DEPDIR)/SqliteData.Tpo -c -o SqliteData.o `test -f 'Data/SqliteData.c' || echo '$(srcdir)/'`Data/SqliteData.c
+	$(am__mv) $(DEPDIR)/SqliteData.Tpo $(DEPDIR)/SqliteData.Po
+#	source='Data/SqliteData.c' object='SqliteData.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o SqliteData.o `test -f 'Data/SqliteData.c' || echo '$(srcdir)/'`Data/SqliteData.c
+
+SqliteData.obj: Data/SqliteData.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT SqliteData.obj -MD -MP -MF $(DEPDIR)/SqliteData.Tpo -c -o SqliteData.obj `if test -f 'Data/SqliteData.c'; then $(CYGPATH_W) 'Data/SqliteData.c'; else $(CYGPATH_W) '$(srcdir)/Data/SqliteData.c'; fi`
+	$(am__mv) $(DEPDIR)/SqliteData.Tpo $(DEPDIR)/SqliteData.Po
+#	source='Data/SqliteData.c' object='SqliteData.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o SqliteData.obj `if test -f 'Data/SqliteData.c'; then $(CYGPATH_W) 'Data/SqliteData.c'; else $(CYGPATH_W) '$(srcdir)/Data/SqliteData.c'; fi`
+
+DateTimeConverter.o: Helpers/DateTimeConverter.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT DateTimeConverter.o -MD -MP -MF $(DEPDIR)/DateTimeConverter.Tpo -c -o DateTimeConverter.o `test -f 'Helpers/DateTimeConverter.c' || echo '$(srcdir)/'`Helpers/DateTimeConverter.c
+	$(am__mv) $(DEPDIR)/DateTimeConverter.Tpo $(DEPDIR)/DateTimeConverter.Po
+#	source='Helpers/DateTimeConverter.c' object='DateTimeConverter.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o DateTimeConverter.o `test -f 'Helpers/DateTimeConverter.c' || echo '$(srcdir)/'`Helpers/DateTimeConverter.c
+
+DateTimeConverter.obj: Helpers/DateTimeConverter.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT DateTimeConverter.obj -MD -MP -MF $(DEPDIR)/DateTimeConverter.Tpo -c -o DateTimeConverter.obj `if test -f 'Helpers/DateTimeConverter.c'; then $(CYGPATH_W) 'Helpers/DateTimeConverter.c'; else $(CYGPATH_W) '$(srcdir)/Helpers/DateTimeConverter.c'; fi`
+	$(am__mv) $(DEPDIR)/DateTimeConverter.Tpo $(DEPDIR)/DateTimeConverter.Po
+#	source='Helpers/DateTimeConverter.c' object='DateTimeConverter.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o DateTimeConverter.obj `if test -f 'Helpers/DateTimeConverter.c'; then $(CYGPATH_W) 'Helpers/DateTimeConverter.c'; else $(CYGPATH_W) '$(srcdir)/Helpers/DateTimeConverter.c'; fi`
+
+Event.o: Events/Event.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Event.o -MD -MP -MF $(DEPDIR)/Event.Tpo -c -o Event.o `test -f 'Events/Event.c' || echo '$(srcdir)/'`Events/Event.c
+	$(am__mv) $(DEPDIR)/Event.Tpo $(DEPDIR)/Event.Po
+#	source='Events/Event.c' object='Event.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Event.o `test -f 'Events/Event.c' || echo '$(srcdir)/'`Events/Event.c
+
+Event.obj: Events/Event.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Event.obj -MD -MP -MF $(DEPDIR)/Event.Tpo -c -o Event.obj `if test -f 'Events/Event.c'; then $(CYGPATH_W) 'Events/Event.c'; else $(CYGPATH_W) '$(srcdir)/Events/Event.c'; fi`
+	$(am__mv) $(DEPDIR)/Event.Tpo $(DEPDIR)/Event.Po
+#	source='Events/Event.c' object='Event.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Event.obj `if test -f 'Events/Event.c'; then $(CYGPATH_W) 'Events/Event.c'; else $(CYGPATH_W) '$(srcdir)/Events/Event.c'; fi`
+
+StatusEvent.o: Events/StatusEvent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT StatusEvent.o -MD -MP -MF $(DEPDIR)/StatusEvent.Tpo -c -o StatusEvent.o `test -f 'Events/StatusEvent.c' || echo '$(srcdir)/'`Events/StatusEvent.c
+	$(am__mv) $(DEPDIR)/StatusEvent.Tpo $(DEPDIR)/StatusEvent.Po
+#	source='Events/StatusEvent.c' object='StatusEvent.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o StatusEvent.o `test -f 'Events/StatusEvent.c' || echo '$(srcdir)/'`Events/StatusEvent.c
+
+StatusEvent.obj: Events/StatusEvent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT StatusEvent.obj -MD -MP -MF $(DEPDIR)/StatusEvent.Tpo -c -o StatusEvent.obj `if test -f 'Events/StatusEvent.c'; then $(CYGPATH_W) 'Events/StatusEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/StatusEvent.c'; fi`
+	$(am__mv) $(DEPDIR)/StatusEvent.Tpo $(DEPDIR)/StatusEvent.Po
+#	source='Events/StatusEvent.c' object='StatusEvent.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o StatusEvent.obj `if test -f 'Events/StatusEvent.c'; then $(CYGPATH_W) 'Events/StatusEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/StatusEvent.c'; fi`
+
+ChangeNameEvent.o: Events/ChangeNameEvent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ChangeNameEvent.o -MD -MP -MF $(DEPDIR)/ChangeNameEvent.Tpo -c -o ChangeNameEvent.o `test -f 'Events/ChangeNameEvent.c' || echo '$(srcdir)/'`Events/ChangeNameEvent.c
+	$(am__mv) $(DEPDIR)/ChangeNameEvent.Tpo $(DEPDIR)/ChangeNameEvent.Po
+#	source='Events/ChangeNameEvent.c' object='ChangeNameEvent.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ChangeNameEvent.o `test -f 'Events/ChangeNameEvent.c' || echo '$(srcdir)/'`Events/ChangeNameEvent.c
+
+ChangeNameEvent.obj: Events/ChangeNameEvent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ChangeNameEvent.obj -MD -MP -MF $(DEPDIR)/ChangeNameEvent.Tpo -c -o ChangeNameEvent.obj `if test -f 'Events/ChangeNameEvent.c'; then $(CYGPATH_W) 'Events/ChangeNameEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/ChangeNameEvent.c'; fi`
+	$(am__mv) $(DEPDIR)/ChangeNameEvent.Tpo $(DEPDIR)/ChangeNameEvent.Po
+#	source='Events/ChangeNameEvent.c' object='ChangeNameEvent.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ChangeNameEvent.obj `if test -f 'Events/ChangeNameEvent.c'; then $(CYGPATH_W) 'Events/ChangeNameEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/ChangeNameEvent.c'; fi`
+
+MessageEvent.o: Events/MessageEvent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageEvent.o -MD -MP -MF $(DEPDIR)/MessageEvent.Tpo -c -o MessageEvent.o `test -f 'Events/MessageEvent.c' || echo '$(srcdir)/'`Events/MessageEvent.c
+	$(am__mv) $(DEPDIR)/MessageEvent.Tpo $(DEPDIR)/MessageEvent.Po
+#	source='Events/MessageEvent.c' object='MessageEvent.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageEvent.o `test -f 'Events/MessageEvent.c' || echo '$(srcdir)/'`Events/MessageEvent.c
+
+MessageEvent.obj: Events/MessageEvent.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT MessageEvent.obj -MD -MP -MF $(DEPDIR)/MessageEvent.Tpo -c -o MessageEvent.obj `if test -f 'Events/MessageEvent.c'; then $(CYGPATH_W) 'Events/MessageEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/MessageEvent.c'; fi`
+	$(am__mv) $(DEPDIR)/MessageEvent.Tpo $(DEPDIR)/MessageEvent.Po
+#	source='Events/MessageEvent.c' object='MessageEvent.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageEvent.obj `if test -f 'Events/MessageEvent.c'; then $(CYGPATH_W) 'Events/MessageEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/MessageEvent.c'; fi`
 $(srcdir)/main.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
+$(srcdir)/PluginRegistrar.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/PluginManager.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/IRC/IRCConnection.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Data/IDataAccess.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Data/SqliteData.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Helpers/DateTimeConverter.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Events/Event.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Events/StatusEvent.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Events/ChangeNameEvent.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Events/MessageEvent.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
 SemesterLeistung_vala.stamp: $(SemesterLeistung_SOURCES)
-	$(VALAC) $(AM_VALAFLAGS) $(VALAFLAGS) -C $(SemesterLeistung_SOURCES)
+	$(VALAC) $(SemesterLeistung_VALAFLAGS) $(VALAFLAGS) -C $(SemesterLeistung_SOURCES)
 	touch $@
 
 mostlyclean-libtool:
@@ -474,6 +679,16 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-rm -f Data/IDataAccess.c
+	-rm -f Data/SqliteData.c
+	-rm -f Events/ChangeNameEvent.c
+	-rm -f Events/Event.c
+	-rm -f Events/MessageEvent.c
+	-rm -f Events/StatusEvent.c
+	-rm -f Helpers/DateTimeConverter.c
+	-rm -f IRC/IRCConnection.c
+	-rm -f PluginManager.c
+	-rm -f PluginRegistrar.c
 	-rm -f SemesterLeistung_vala.stamp
 	-rm -f main.c
 clean: clean-am
@@ -562,6 +777,7 @@ uninstall-am: uninstall-binPROGRAMS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
+	$(NULL)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
