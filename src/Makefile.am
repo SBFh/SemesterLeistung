@@ -15,6 +15,7 @@ SemesterLeistung_SOURCES = \
 	PluginRegistrar.vala \
 	PluginManager.vala \
 	IRC/IRCConnection.vala \
+	IRC/Command.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \

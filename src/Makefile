@@ -42,8 +42,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	Data/IDataAccess.c Data/SqliteData.c Events/ChangeNameEvent.c \
 	Events/Event.c Events/MessageEvent.c Events/StatusEvent.c \
 	GlobalLog.c Helpers/DateTimeConverter.c Helpers/ListHelper.c \
-	IRC/IRCConnection.c PluginManager.c PluginRegistrar.c \
-	SemesterLeistung_vala.stamp main.c
+	IRC/Command.c IRC/IRCConnection.c PluginManager.c \
+	PluginRegistrar.c SemesterLeistung_vala.stamp main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -58,7 +58,7 @@ am__objects_1 =
 am_SemesterLeistung_OBJECTS = main.$(OBJEXT) GlobalLog.$(OBJEXT) \
 	ConnectionHub.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
 	PluginManager.$(OBJEXT) IRCConnection.$(OBJEXT) \
-	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
+	Command.$(OBJEXT) IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
 	DateTimeConverter.$(OBJEXT) ListHelper.$(OBJEXT) \
 	Event.$(OBJEXT) StatusEvent.$(OBJEXT) \
 	ChangeNameEvent.$(OBJEXT) MessageEvent.$(OBJEXT) \
@@ -246,6 +246,7 @@ SemesterLeistung_SOURCES = \
 	PluginRegistrar.vala \
 	PluginManager.vala \
 	IRC/IRCConnection.vala \
+	IRC/Command.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \
@@ -371,6 +372,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/ChangeNameEvent.Po
+include ./$(DEPDIR)/Command.Po
 include ./$(DEPDIR)/ConfigurationFile.Po
 include ./$(DEPDIR)/ConnectionHub.Po
 include ./$(DEPDIR)/DateTimeConverter.Po
@@ -421,6 +423,20 @@ IRCConnection.obj: IRC/IRCConnection.c
 #	source='IRC/IRCConnection.c' object='IRCConnection.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o IRCConnection.obj `if test -f 'IRC/IRCConnection.c'; then $(CYGPATH_W) 'IRC/IRCConnection.c'; else $(CYGPATH_W) '$(srcdir)/IRC/IRCConnection.c'; fi`
+
+Command.o: IRC/Command.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Command.o -MD -MP -MF $(DEPDIR)/Command.Tpo -c -o Command.o `test -f 'IRC/Command.c' || echo '$(srcdir)/'`IRC/Command.c
+	$(am__mv) $(DEPDIR)/Command.Tpo $(DEPDIR)/Command.Po
+#	source='IRC/Command.c' object='Command.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Command.o `test -f 'IRC/Command.c' || echo '$(srcdir)/'`IRC/Command.c
+
+Command.obj: IRC/Command.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Command.obj -MD -MP -MF $(DEPDIR)/Command.Tpo -c -o Command.obj `if test -f 'IRC/Command.c'; then $(CYGPATH_W) 'IRC/Command.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Command.c'; fi`
+	$(am__mv) $(DEPDIR)/Command.Tpo $(DEPDIR)/Command.Po
+#	source='IRC/Command.c' object='Command.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Command.obj `if test -f 'IRC/Command.c'; then $(CYGPATH_W) 'IRC/Command.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Command.c'; fi`
 
 IDataAccess.o: Data/IDataAccess.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IDataAccess.o -MD -MP -MF $(DEPDIR)/IDataAccess.Tpo -c -o IDataAccess.o `test -f 'Data/IDataAccess.c' || echo '$(srcdir)/'`Data/IDataAccess.c
@@ -587,6 +603,11 @@ $(srcdir)/PluginManager.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
 $(srcdir)/IRC/IRCConnection.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/IRC/Command.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
@@ -778,6 +799,7 @@ maintainer-clean-generic:
 	-rm -f GlobalLog.c
 	-rm -f Helpers/DateTimeConverter.c
 	-rm -f Helpers/ListHelper.c
+	-rm -f IRC/Command.c
 	-rm -f IRC/IRCConnection.c
 	-rm -f PluginManager.c
 	-rm -f PluginRegistrar.c

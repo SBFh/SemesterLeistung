@@ -1,3 +1,5 @@
+using Daemon.Configuration;
+
 namespace Daemon.IRC
 {
 	errordomain IRCError
@@ -11,36 +13,27 @@ namespace Daemon.IRC
 	{
 		private SocketClient _connection;
 	
-		public IRCConnection(string fullHost) throws IRCError
-		{
-			string[] hostParts = fullHost.split(":");
-			
-			string host;
-			uint16 port = 6667;
-			
-			if (hostParts.length == 2)
-			{
-				host = hostParts[0];
-				try
-				{
-					port = (uint16)int.parse(hostParts[1]);
-				}
-				catch
-				{
-					throw new IRCError.InvalidHost("Could not parse Port");
-				}
-			}
-			else if (hostParts.length > 2)
-			{
-				throw new IRCError.InvalidHost("Invalid Host Format");
-			}
-			else
-			{
-				host = fullHost;
-			}
+		public ServerConfiguration ServerConfiguration { get; private set; }
 		
-			Host = host;
-			Port = port;
+		private unowned Thread<void*> _connectionThread;
+		
+		public string Host { get; private set; }
+
+		public uint16 Port { get; private set; }
+		
+		public InetAddress Address { get; private set; }
+		
+		public InetSocketAddress Endpoint { get; private set; }
+		
+		private SocketConnection _socket;
+		
+		private DataInputStream _inputStream;
+		
+		private IOChannel _channel;
+	
+		public IRCConnection(ServerConfiguration configuration) throws IRCError
+		{
+			ServerConfiguration = configuration;
 			
 			Resolver resolver = Resolver.get_default();
 			
@@ -48,7 +41,7 @@ namespace Daemon.IRC
 			
 			try
 			{
-				addresses = resolver.lookup_by_name(host);
+				addresses = resolver.lookup_by_name(configuration.Host);
 			}
 			catch (Error error)
 			{
@@ -57,12 +50,12 @@ namespace Daemon.IRC
 			
 			if (addresses.length() == 0)
 			{
-				throw new IRCError.DNSError("No IP found for " + host);
+				throw new IRCError.DNSError("No IP found for " + configuration.Host);
 			}
 
 			Address = addresses.nth_data(0);
 			
-			Endpoint = new InetSocketAddress(Address, Port);
+			Endpoint = new InetSocketAddress(Address, configuration.Port);
 			
 			try
 			{
@@ -73,8 +66,6 @@ namespace Daemon.IRC
 				throw new IRCError.ThreadError(error.message);
 			}
 		}
-		
-		private unowned Thread<void*> _connectionThread;
 		
 		void* StartConnection()
 		{
@@ -88,16 +79,6 @@ namespace Daemon.IRC
 			_connectionThread.join();
 		}
 		
-		public string Host { get; private set; }
-
-		public uint16 Port { get; private set; }
-		
-		public InetAddress Address { get; private set; }
-		
-		public InetSocketAddress Endpoint { get; private set; }
-		
-		private SocketConnection _socket;
-		
 		private void Connect()
 		{
 			_connection = new SocketClient();
@@ -107,6 +88,7 @@ namespace Daemon.IRC
 			try
 			{
 				_socket = _connection.connect(Endpoint);
+				_inputStream = new DataInputStream(_socket.input_stream);
 			}
 			catch
 			{
@@ -114,16 +96,13 @@ namespace Daemon.IRC
 				return;
 			}
 			
-			_socket.get_socket().set_keepalive(true);
+			_socket.socket.set_keepalive(true);
+
+			Connected();
 			
-			if (_socket != null)
-			{
-				Connected();
-			}
-			else
-			{
-				Reconnect(_reconnectTime);
-			}
+			_channel = new IOChannel.unix_new(_socket.socket.fd);
+			
+			_channel.add_watch(IOCondition.IN, InputWatch);
 		}
 		
 		private const int _reconnectTime = 5;
@@ -146,13 +125,62 @@ namespace Daemon.IRC
 		
 		private void Connected()
 		{
-			print("Connected");
+			_sentLogin = false;
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Successfully connected to Server: %s", ServerConfiguration.Name);
 		}
 		
 		private void Disconnected()
 		{
-			print("Disconnected");
+			GlobalLog.Warning("Disconnected from Server: %s", ServerConfiguration.Name);
 			Reconnect(0);
+		}
+		
+		bool _sentLogin = false;
+		
+		private void ReceivedCommand(Command command)
+		{
+			GlobalLog.ColorMessage(ConsoleColors.Blue, "@%s Received - %s", ServerConfiguration.Name, command.ToString());
+			if (!_sentLogin)
+			{
+				_sentLogin = true;
+				SendCommand(new Command("USER", new string[] { "Simon", "localhost", "localhost", "Simon" }));
+				SendCommand(new Command("NICK", new string[] { "LolBot" }));
+			}
+		}
+		
+		private void SendCommand(Command command)
+		{
+			string prepared = command.Prepare();
+			_socket.output_stream.write_async(prepared.data, prepared.length);
+			GlobalLog.ColorMessage(ConsoleColors.Yellow, "@%s Sent - %s", ServerConfiguration.Name, command.ToString());
+//			_channel.write_chars(prepared, null);
+		}
+		
+		public bool InputWatch(IOChannel source, IOCondition condition)
+		{
+			string receivedText;
+			
+			source.read_line(out receivedText, null, null);
+
+			Command receivedCommand = null;
+			
+			try
+			{
+				receivedCommand = Command.Parse(receivedText);
+			}
+			catch (CommandError error)
+			{
+				GlobalLog.Warning("@%s - Could not understand command '%s", ServerConfiguration.Name, receivedText);
+				return true;
+			}
+			
+			if (receivedCommand != null)
+			{
+				ReceivedCommand(receivedCommand);
+			}
+			
+			return true;
 		}
 	}
 }

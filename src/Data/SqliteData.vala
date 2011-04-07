@@ -27,7 +27,7 @@ namespace Daemon.Data
 				throw new DataAccessError.WriteError("Could not create Database");				
 			}	
 			
-			stdout.printf("Successfully initialized Database");
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Successfully initialized Database");
 		}
 		
 		public void Log(LogEvent event) throws DataAccessError

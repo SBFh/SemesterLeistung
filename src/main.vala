@@ -12,18 +12,7 @@ namespace Daemon
 
 		public void run ()
 		{
-			IRCConnection connection = null;
-			try
-			{	
-				connection = new IRCConnection("localhost:6667");
-			}
-			catch (IRCError error)
-			{
-				stdout.printf(error.message);
-				return;
-			}
 			
-			connection.Join();
 		}
 		
 		public static string? LogLibrary = null;
@@ -318,6 +307,11 @@ namespace Daemon
 				return 1;
 			}
 			
+			IRCConnection testConnection = new IRCConnection(servers[0]);
+			
+			MainLoop loop = new MainLoop();
+			
+			loop.run();
 
 			return 0;
 			var main = new Main ();

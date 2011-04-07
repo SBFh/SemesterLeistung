@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<disable-daemon>true</disable-daemon>
-	<log-library>/etc/daemon/sqlite.so</log-library>
 	<log-file>/home/simon/data.db</log-file>
 	<nicknames>
-		<nickname>simon</nickname>
-		<nickname>simon2</nickname>
+		<nickname>irc-bot</nickname>
+		<nickname>irc-bot2</nickname>
 	</nicknames>
 	<servers>
 		<server>
 			<host>localhost</host>
 			<port>6667</port>
 			<channels>
-				<channel>#asdasd</channel>
+				<channel>#main</channel>
 				<channel>#other</channel>
 			</channels>
 		</server>
