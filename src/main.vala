@@ -1,6 +1,7 @@
 using Daemon.IRC;
 using Daemon.Data;
 using Daemon.Events;
+using Daemon.Configuration;
 
 namespace Daemon
 {
@@ -29,6 +30,14 @@ namespace Daemon
 		public static string? LogFile = null;
 		
 		public static string? ConfigFile = null;
+		
+		public static bool DisableDaemon = false;
+		
+		[CCode (array_length = false, array_null_terminated = true)]
+    [NoArrayLength]
+		public static string[] Servers;
+
+		public static string? Nicknames = null;
 
 		private const OptionEntry[] _options = 
 		{
@@ -59,6 +68,33 @@ namespace Daemon
  				"Path to the configuration file.", 
  				null 
 			},
+ 			{
+ 				"console", 
+ 				'd', 
+ 				0, 
+ 				OptionArg.NONE, 
+				ref DisableDaemon,
+ 				"Disable the Daemon functionality.", 
+ 				null 
+			},
+ 			{
+ 				"servers", 
+ 				's', 
+ 				0, 
+ 				OptionArg.STRING_ARRAY, 
+				ref Servers,
+ 				"Specify the Servers and Channels to use. Use format: 'host:(port)/channel,channel,...'", 
+ 				null 
+			},
+ 			{
+ 				"nick", 
+ 				'n', 
+ 				0, 
+ 				OptionArg.STRING, 
+				ref Nicknames,
+ 				"The Nicknames used by the bot. Comma-Separated.", 
+ 				null 
+			},
 			{ null } 
 		}; 
 
@@ -80,20 +116,106 @@ namespace Daemon
 				return 1;
 			}
 			
-			GlobalLog.Message("Initializing the Daemon");
+			ConfigFile = ConfigFile ?? Environment.get_current_dir() + "/config.xml";
 			
-			if (LogLibrary == null)
+			File configFile = File.new_for_path(ConfigFile);
+			
+			if (configFile.query_exists())
 			{
-				GlobalLog.Message("Using default log library");
+				GlobalLog.ColorMessage(ConsoleColors.Green, "Using Configuration File: %s", ConfigFile);
+				
+				try
+				{
+					ConfigurationFile configuration = ConfigurationFile.Load(ConfigFile);
+				}
+				catch (ConfigurationError error)
+				{
+					GlobalLog.Error("Loading Configuration File %s failed: %s", ConfigFile, error.message);
+					return 1;
+				}
+				
 			}
 			else
 			{
-				GlobalLog.Message("Using log library located at: %s", LogLibrary);
+				GlobalLog.Warning("Could not open Configuration File: %s", ConfigFile);
 			}
 			
-			LogFile = LogFile ?? "~/data.db";
+			GlobalLog.ColorMessage(ConsoleColors.Blue, "Initializing the Application");
 			
-			GlobalLog.Message("Using Log at %s", LogFile);
+			if (LogLibrary == null)
+			{
+				GlobalLog.ColorMessage(ConsoleColors.Green, "Using default log library");
+			}
+			else
+			{
+				GlobalLog.ColorMessage(ConsoleColors.Green, "Using log library located at: %s", LogLibrary);
+			}
+			
+			LogFile = LogFile ?? Environment.get_home_dir() + "/data.db";
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Using Log File at %s", LogFile);
+			
+			string[] nicknames = new string[0];
+
+			if (Nicknames != null && Nicknames.length > 0)
+			{
+				nicknames = Nicknames.split(",");
+				
+				GlobalLog.ColorMessage(ConsoleColors.Green, "Using these nicknames in this order:");
+				
+				foreach (string current in nicknames)
+				{
+					GlobalLog.ColorMessage(ConsoleColors.Purple, current);
+				}
+			}
+			
+			if (Servers == null || Servers.length == 0)
+			{
+				GlobalLog.Error("No servers specified");
+				return 1;
+			}
+			
+			foreach (string current in Servers)
+			{
+				ServerConfiguration server;
+				
+				try
+				{
+					server = ServerConfiguration.Parse(current);
+					GlobalLog.ColorMessage(ConsoleColors.Green, "Using Server:");
+					GlobalLog.ColorMessage(ConsoleColors.Purple, server.ToString());
+				}
+				catch (ConfigurationError error)
+				{
+					GlobalLog.Error("Server configuration invalid, reason: %s", error.message);
+					return 1;
+				}
+			}
+			
+			if (DisableDaemon)
+			{
+				GlobalLog.Warning("Not running as Daemon");
+			}
+			else
+			{
+				GlobalLog.ColorMessage(ConsoleColors.Blue, "Running as Daemon");
+			}
+
+			try
+			{
+				PluginManager.InitDataAccess(LogLibrary, LogFile);
+			}
+			catch (PluginError error)
+			{
+				GlobalLog.Error("Could not initialize Log Library: %s", error.message);
+				return 1;
+			}
+			catch (DataAccessError error)
+			{
+				GlobalLog.Error("Log Library threw Exception: %s", error.message);
+				return 1;
+			}
+			
 
 			return 0;
 			var main = new Main ();

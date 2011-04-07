@@ -37,11 +37,13 @@ host_triplet = @host@
 bin_PROGRAMS = SemesterLeistung$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+	Configuration/ConfigurationFile.c \
+	Configuration/ServerConfiguration.c ConnectionHub.c \
 	Data/IDataAccess.c Data/SqliteData.c Events/ChangeNameEvent.c \
 	Events/Event.c Events/MessageEvent.c Events/StatusEvent.c \
-	Helpers/DateTimeConverter.c IRC/IRCConnection.c \
-	PluginManager.c PluginRegistrar.c SemesterLeistung_vala.stamp \
-	main.c
+	GlobalLog.c Helpers/DateTimeConverter.c Helpers/ListHelper.c \
+	IRC/IRCConnection.c PluginManager.c PluginRegistrar.c \
+	SemesterLeistung_vala.stamp main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -53,12 +55,15 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
-am_SemesterLeistung_OBJECTS = main.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
+am_SemesterLeistung_OBJECTS = main.$(OBJEXT) GlobalLog.$(OBJEXT) \
+	ConnectionHub.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
 	PluginManager.$(OBJEXT) IRCConnection.$(OBJEXT) \
 	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
-	DateTimeConverter.$(OBJEXT) Event.$(OBJEXT) \
-	StatusEvent.$(OBJEXT) ChangeNameEvent.$(OBJEXT) \
-	MessageEvent.$(OBJEXT) $(am__objects_1)
+	DateTimeConverter.$(OBJEXT) ListHelper.$(OBJEXT) \
+	Event.$(OBJEXT) StatusEvent.$(OBJEXT) \
+	ChangeNameEvent.$(OBJEXT) MessageEvent.$(OBJEXT) \
+	ServerConfiguration.$(OBJEXT) ConfigurationFile.$(OBJEXT) \
+	$(am__objects_1)
 SemesterLeistung_OBJECTS = $(am_SemesterLeistung_OBJECTS)
 am__DEPENDENCIES_1 =
 SemesterLeistung_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -231,20 +236,26 @@ NULL =
 AM_CPPFLAGS = \
 	$(SEMESTERLEISTUNG_CFLAGS) \
 	-include $(CONFIG_HEADER) \
+	`xml2-config --cflags` \
 	$(NULL)
 
 SemesterLeistung_SOURCES = \
 	main.vala \
+	GlobalLog.vala \
+	ConnectionHub.vala \
 	PluginRegistrar.vala \
 	PluginManager.vala \
 	IRC/IRCConnection.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \
+	Helpers/ListHelper.vala \
 	Events/Event.vala \
 	Events/StatusEvent.vala \
 	Events/ChangeNameEvent.vala \
 	Events/MessageEvent.vala \
+	Configuration/ServerConfiguration.vala \
+	Configuration/ConfigurationFile.vala \
 	$(NULL)
 
 SemesterLeistung_LDADD = \
@@ -254,12 +265,16 @@ SemesterLeistung_LDADD = \
 SemesterLeistung_LDFLAGS = \
 	-lsqlite3 \
 	-lgio-2.0 \
-	-lgmodule-2.0
+	-lgmodule-2.0 \
+	`xml2-config --libs` \
+	$(NULL)
 
 SemesterLeistung_VALAFLAGS = \
 	--pkg gio-2.0 \
 	--pkg sqlite3 \
 	--pkg gmodule-2.0 \
+	--pkg libxml-2.0 \
+	--thread \
 	$(NULL)
 
 EXTRA_DIST = \
@@ -356,13 +371,18 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ChangeNameEvent.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConfigurationFile.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ConnectionHub.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DateTimeConverter.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Event.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/GlobalLog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IDataAccess.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/IRCConnection.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ListHelper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MessageEvent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PluginManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PluginRegistrar.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ServerConfiguration.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SqliteData.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/StatusEvent.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@
@@ -444,6 +464,20 @@ DateTimeConverter.obj: Helpers/DateTimeConverter.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o DateTimeConverter.obj `if test -f 'Helpers/DateTimeConverter.c'; then $(CYGPATH_W) 'Helpers/DateTimeConverter.c'; else $(CYGPATH_W) '$(srcdir)/Helpers/DateTimeConverter.c'; fi`
 
+ListHelper.o: Helpers/ListHelper.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ListHelper.o -MD -MP -MF $(DEPDIR)/ListHelper.Tpo -c -o ListHelper.o `test -f 'Helpers/ListHelper.c' || echo '$(srcdir)/'`Helpers/ListHelper.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ListHelper.Tpo $(DEPDIR)/ListHelper.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Helpers/ListHelper.c' object='ListHelper.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ListHelper.o `test -f 'Helpers/ListHelper.c' || echo '$(srcdir)/'`Helpers/ListHelper.c
+
+ListHelper.obj: Helpers/ListHelper.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ListHelper.obj -MD -MP -MF $(DEPDIR)/ListHelper.Tpo -c -o ListHelper.obj `if test -f 'Helpers/ListHelper.c'; then $(CYGPATH_W) 'Helpers/ListHelper.c'; else $(CYGPATH_W) '$(srcdir)/Helpers/ListHelper.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ListHelper.Tpo $(DEPDIR)/ListHelper.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Helpers/ListHelper.c' object='ListHelper.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ListHelper.obj `if test -f 'Helpers/ListHelper.c'; then $(CYGPATH_W) 'Helpers/ListHelper.c'; else $(CYGPATH_W) '$(srcdir)/Helpers/ListHelper.c'; fi`
+
 Event.o: Events/Event.c
 @am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Event.o -MD -MP -MF $(DEPDIR)/Event.Tpo -c -o Event.o `test -f 'Events/Event.c' || echo '$(srcdir)/'`Events/Event.c
 @am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/Event.Tpo $(DEPDIR)/Event.Po
@@ -499,7 +533,45 @@ MessageEvent.obj: Events/MessageEvent.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Events/MessageEvent.c' object='MessageEvent.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o MessageEvent.obj `if test -f 'Events/MessageEvent.c'; then $(CYGPATH_W) 'Events/MessageEvent.c'; else $(CYGPATH_W) '$(srcdir)/Events/MessageEvent.c'; fi`
+
+ServerConfiguration.o: Configuration/ServerConfiguration.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ServerConfiguration.o -MD -MP -MF $(DEPDIR)/ServerConfiguration.Tpo -c -o ServerConfiguration.o `test -f 'Configuration/ServerConfiguration.c' || echo '$(srcdir)/'`Configuration/ServerConfiguration.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ServerConfiguration.Tpo $(DEPDIR)/ServerConfiguration.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Configuration/ServerConfiguration.c' object='ServerConfiguration.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ServerConfiguration.o `test -f 'Configuration/ServerConfiguration.c' || echo '$(srcdir)/'`Configuration/ServerConfiguration.c
+
+ServerConfiguration.obj: Configuration/ServerConfiguration.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ServerConfiguration.obj -MD -MP -MF $(DEPDIR)/ServerConfiguration.Tpo -c -o ServerConfiguration.obj `if test -f 'Configuration/ServerConfiguration.c'; then $(CYGPATH_W) 'Configuration/ServerConfiguration.c'; else $(CYGPATH_W) '$(srcdir)/Configuration/ServerConfiguration.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ServerConfiguration.Tpo $(DEPDIR)/ServerConfiguration.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Configuration/ServerConfiguration.c' object='ServerConfiguration.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ServerConfiguration.obj `if test -f 'Configuration/ServerConfiguration.c'; then $(CYGPATH_W) 'Configuration/ServerConfiguration.c'; else $(CYGPATH_W) '$(srcdir)/Configuration/ServerConfiguration.c'; fi`
+
+ConfigurationFile.o: Configuration/ConfigurationFile.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ConfigurationFile.o -MD -MP -MF $(DEPDIR)/ConfigurationFile.Tpo -c -o ConfigurationFile.o `test -f 'Configuration/ConfigurationFile.c' || echo '$(srcdir)/'`Configuration/ConfigurationFile.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ConfigurationFile.Tpo $(DEPDIR)/ConfigurationFile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Configuration/ConfigurationFile.c' object='ConfigurationFile.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ConfigurationFile.o `test -f 'Configuration/ConfigurationFile.c' || echo '$(srcdir)/'`Configuration/ConfigurationFile.c
+
+ConfigurationFile.obj: Configuration/ConfigurationFile.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT ConfigurationFile.obj -MD -MP -MF $(DEPDIR)/ConfigurationFile.Tpo -c -o ConfigurationFile.obj `if test -f 'Configuration/ConfigurationFile.c'; then $(CYGPATH_W) 'Configuration/ConfigurationFile.c'; else $(CYGPATH_W) '$(srcdir)/Configuration/ConfigurationFile.c'; fi`
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/ConfigurationFile.Tpo $(DEPDIR)/ConfigurationFile.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='Configuration/ConfigurationFile.c' object='ConfigurationFile.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o ConfigurationFile.obj `if test -f 'Configuration/ConfigurationFile.c'; then $(CYGPATH_W) 'Configuration/ConfigurationFile.c'; else $(CYGPATH_W) '$(srcdir)/Configuration/ConfigurationFile.c'; fi`
 $(srcdir)/main.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/GlobalLog.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/ConnectionHub.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
@@ -534,6 +606,11 @@ $(srcdir)/Helpers/DateTimeConverter.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
+$(srcdir)/Helpers/ListHelper.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
 $(srcdir)/Events/Event.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
@@ -550,6 +627,16 @@ $(srcdir)/Events/ChangeNameEvent.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
 $(srcdir)/Events/MessageEvent.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Configuration/ServerConfiguration.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/Configuration/ConfigurationFile.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
@@ -679,13 +766,18 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
+	-rm -f Configuration/ConfigurationFile.c
+	-rm -f Configuration/ServerConfiguration.c
+	-rm -f ConnectionHub.c
 	-rm -f Data/IDataAccess.c
 	-rm -f Data/SqliteData.c
 	-rm -f Events/ChangeNameEvent.c
 	-rm -f Events/Event.c
 	-rm -f Events/MessageEvent.c
 	-rm -f Events/StatusEvent.c
+	-rm -f GlobalLog.c
 	-rm -f Helpers/DateTimeConverter.c
+	-rm -f Helpers/ListHelper.c
 	-rm -f IRC/IRCConnection.c
 	-rm -f PluginManager.c
 	-rm -f PluginRegistrar.c
@@ -777,7 +869,6 @@ uninstall-am: uninstall-binPROGRAMS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
-	$(NULL)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

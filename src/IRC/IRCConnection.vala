@@ -66,7 +66,7 @@ namespace Daemon.IRC
 			
 			try
 			{
-				Thread.create(StartConnection, false);
+				_connectionThread = Thread.create<void*>(StartConnection, true);
 			}
 			catch (ThreadError error)
 			{
@@ -74,11 +74,18 @@ namespace Daemon.IRC
 			}
 		}
 		
+		private unowned Thread<void*> _connectionThread;
+		
 		void* StartConnection()
 		{
 			Connect();
 			
 			return null;
+		}
+		
+		public void Join()
+		{
+			_connectionThread.join();
 		}
 		
 		public string Host { get; private set; }
@@ -96,7 +103,17 @@ namespace Daemon.IRC
 			_connection = new SocketClient();
 			_connection.set_protocol(SocketProtocol.TCP);
 			_connection.set_timeout(60);
-			_socket = _connection.connect(Endpoint);
+			
+			try
+			{
+				_socket = _connection.connect(Endpoint);
+			}
+			catch
+			{
+				Reconnect(_reconnectTime);
+				return;
+			}
+			
 			_socket.get_socket().set_keepalive(true);
 			
 			if (_socket != null)

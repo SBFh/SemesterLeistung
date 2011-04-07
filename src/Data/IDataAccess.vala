@@ -2,7 +2,7 @@ using Daemon.Events;
 
 namespace Daemon.Data
 {
-	errordomain DataAccessError
+	public errordomain DataAccessError
 	{
 		OpenFailed,
 		WriteError,
@@ -19,9 +19,9 @@ namespace Daemon.Data
 
 	public interface IDataAccess : Object
 	{
-		public abstract void Log(LogEvent event);
-		public abstract DateTime? UserLastSeen(string username, string channel, string server);
-		public abstract List<LogEvent> GetLog(string channel, string server);
-		public abstract void Init(string? logPath);
+		public abstract void Log(LogEvent event) throws DataAccessError;
+		public abstract DateTime? UserLastSeen(string username, string channel, string server) throws DataAccessError;
+		public abstract List<LogEvent> GetLog(string channel, string server) throws DataAccessError;
+		public abstract void Init(string? logPath) throws DataAccessError;
 	}
 }

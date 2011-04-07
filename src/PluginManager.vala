@@ -11,7 +11,7 @@ namespace Daemon
 	{
 		public static IDataAccess? DataAccess { get; private set; }
 		
-		public static IDataAccess? InitDataAccess(string? pluginPath, string? logPath) throws PluginError
+		public static IDataAccess? InitDataAccess(string? pluginPath, string? logPath) throws PluginError, DataAccessError
 		{
 			IDataAccess result;
 			
@@ -26,15 +26,7 @@ namespace Daemon
 				result = registrar.Create();
 			}
 			
-			try
-			{
-				result.Init(logPath);
-			}
-			catch (DataAccessError error)
-			{
-				stdout.printf("Error initializing Data Access Plugin: %s", error.message);
-				return null;
-			}
+			result.Init(logPath);
 			
 			DataAccess = result;
 			

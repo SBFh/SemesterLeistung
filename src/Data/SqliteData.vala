@@ -8,7 +8,7 @@ namespace Daemon.Data
 	{
 		private Database _database;
 		
-		public void Init(string? logPath)
+		public void Init(string? logPath) throws DataAccessError
 		{
 			int result = Database.open(logPath ?? "data.db", out _database);
 			if (result != Sqlite.OK)
@@ -18,7 +18,7 @@ namespace Daemon.Data
 			CreateSchema();
 		}
 		
-		private void CreateSchema()
+		private void CreateSchema() throws DataAccessError
 		{
 			string createLog = "CREATE TABLE IF NOT EXISTS Log (Username TEXT, Data TEXT NULL, Channel TEXT, Server TEXT, Timestamp INTEGER, Type INTEGER)";
 			
@@ -30,7 +30,7 @@ namespace Daemon.Data
 			stdout.printf("Successfully initialized Database");
 		}
 		
-		public void Log(LogEvent event)
+		public void Log(LogEvent event) throws DataAccessError
 		{
 			if (event is StatusEvent)
 			{
@@ -47,7 +47,7 @@ namespace Daemon.Data
 			stdout.printf(event.ToString() + "\n");
 		}
 		
-		private void LogStatusEvent(StatusEvent event)
+		private void LogStatusEvent(StatusEvent event) throws DataAccessError
 		{
 			string commandText = "INSERT INTO Log (Username, Channel, Server, Type, Timestamp) VALUES (@1, @2, @3, @4, @5)";
 			Statement statement;
@@ -66,7 +66,7 @@ namespace Daemon.Data
 			}
 		}
 		
-		public void LogChangeNameEvent(ChangeNameEvent event)
+		public void LogChangeNameEvent(ChangeNameEvent event) throws DataAccessError
 		{
 			string commandText = "INSERT INTO Log (Username, Data, Channel, Server, Type, Timestamp) VALUES (@1, @2, @3, @4, @5, @6)";
 			Statement statement;
@@ -86,7 +86,7 @@ namespace Daemon.Data
 			}
 		}
 		
-		public void LogMessageEvent(MessageEvent event)
+		public void LogMessageEvent(MessageEvent event) throws DataAccessError
 		{
 			string commandText = "INSERT INTO Log (Username, Data, Channel, Server, Timestamp, Type) VALUES (@1, @2, @3, @4, @5, @6)";
 			
@@ -107,7 +107,7 @@ namespace Daemon.Data
 			}
 		}
 				
-		public DateTime? UserLastSeen(string username, string channel, string server)
+		public DateTime? UserLastSeen(string username, string channel, string server) throws DataAccessError
 		{
 			string commandText = "SELECT Timestamp,Type FROM Log WHERE Username = @1 AND Channel = @2 AND Server = @3 ORDER BY Timestamp DESC LIMIT 1";
 			
@@ -132,7 +132,7 @@ namespace Daemon.Data
 			return DateTimeConverter.FromUnixTimestamp(statement.column_int64(0));
 		}
 		
-		public List<LogEvent> GetLog(string channel, string server)
+		public List<LogEvent> GetLog(string channel, string server) throws DataAccessError
 		{
 			string commandText = "SELECT * FROM Log WHERE Channel = @1 AND Server = @2 ORDER BY Timestamp DESC LIMIT 50";
 
