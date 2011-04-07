@@ -25,5 +25,32 @@ namespace Daemon.Helpers
 			
 			return result;
 		}
+		
+		public T[] AppendArrays(T[] first, T[] second)
+		{
+			T[] result = new T[first.length + second.length];
+			
+			for (int i = 0; i < first.length; i++)
+			{
+				result[i] = first[i];	
+			}
+			
+			for (int i = 0; i < second.length; i++)
+			{
+				result[i + first.length] = second[i];
+			}
+			
+			return result;
+		}
+		
+		public T[] AppendList(T[] first, List<T> second)
+		{
+			return AppendArrays(first, CopyList(second));
+		}
+		
+		public T[] AppendArray(List<T> first, T[] second)
+		{
+			return AppendArrays(CopyList(first), second);
+		}
 	}
 }

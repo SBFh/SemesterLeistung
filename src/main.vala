@@ -2,6 +2,7 @@ using Daemon.IRC;
 using Daemon.Data;
 using Daemon.Events;
 using Daemon.Configuration;
+using Daemon.Helpers;
 
 namespace Daemon
 {
@@ -122,7 +123,6 @@ namespace Daemon
 
 		static int main (string[] args) 
 		{
-			
 			try
 			{
 				OptionContext context = new OptionContext("");
@@ -143,7 +143,12 @@ namespace Daemon
 			ConfigurationFile configuration = null;
 			
 			if (IgnoreConfig)
-			{
+			{				
+				if (OverrideValues)
+				{
+					GlobalLog.Error("Cannot override and ignore Configuration");
+					return 1;
+				}
 				GlobalLog.Warning("Ignoring Configuration File");
 			}
 			else
@@ -176,6 +181,18 @@ namespace Daemon
 				}
 			}
 			
+			if (OverrideValues)
+			{
+				GlobalLog.Warning("Overriding Configuration");
+			}
+			
+			if (configuration != null)
+			{
+				LogLibrary = LogLibrary ?? configuration.LogLibrary;
+				LogFile = LogFile ?? configuration.LogFile;
+				DisableDaemon = DisableDaemon || configuration.DisableDaemon;
+			}
+			
 			if (LogLibrary == null)
 			{
 				GlobalLog.ColorMessage(ConsoleColors.Green, "Using default log library");
@@ -190,40 +207,91 @@ namespace Daemon
 			GlobalLog.ColorMessage(ConsoleColors.Green, "Using Log File at %s", LogFile);
 			
 			string[] nicknames = new string[0];
+			
+			if (configuration != null)
+			{
+				nicknames = configuration.Nicknames;
+			}
 
 			if (Nicknames != null && Nicknames.length > 0)
 			{
-				nicknames = Nicknames.split(",");
+			
+				string[] newNicknames = Nicknames.split(",");
+				
+				if (OverrideValues)
+				{
+					nicknames = newNicknames;
+				}
+				else
+				{
+					ListHelper<string> helper = new ListHelper<string>();
+					nicknames = helper.AppendArrays(nicknames, newNicknames);
+				}
 				
 				GlobalLog.ColorMessage(ConsoleColors.Green, "Using these nicknames in this order:");
 				
-				foreach (string current in nicknames)
+			}
+			
+			foreach (string current in nicknames)
+			{
+				GlobalLog.ColorMessage(ConsoleColors.Purple, current);
+			}
+			
+			if (nicknames.length == 0)
+			{
+				GlobalLog.Error("No nicknames specified");
+				return 1;
+			}
+			
+			ServerConfiguration[] servers = new ServerConfiguration[0];
+			
+			if (configuration != null)
+			{
+				servers = configuration.Servers;
+			}
+			
+			if (Servers != null && Servers.length != 0)
+			{
+				List<ServerConfiguration> serverList = new List<ServerConfiguration>();
+			
+				foreach (string current in Servers)
 				{
-					GlobalLog.ColorMessage(ConsoleColors.Purple, current);
+					ServerConfiguration server;
+				
+					try
+					{
+						server = ServerConfiguration.Parse(current);
+						serverList.append(server);
+					}
+					catch (ConfigurationError error)
+					{
+						GlobalLog.Error("Server configuration invalid, reason: %s", error.message);
+						return 1;
+					}
+				}
+				
+				ListHelper<ServerConfiguration> helper = new ListHelper<ServerConfiguration>();
+				
+				if (OverrideValues)
+				{
+					servers = helper.CopyList(serverList);
+				}
+				else
+				{
+					servers = helper.AppendList(servers, serverList);
 				}
 			}
 			
-			if (Servers == null || Servers.length == 0)
+			if (servers.length == 0)
 			{
 				GlobalLog.Error("No servers specified");
 				return 1;
 			}
 			
-			foreach (string current in Servers)
+			foreach (ServerConfiguration current in servers)
 			{
-				ServerConfiguration server;
-				
-				try
-				{
-					server = ServerConfiguration.Parse(current);
-					GlobalLog.ColorMessage(ConsoleColors.Green, "Using Server:");
-					GlobalLog.ColorMessage(ConsoleColors.Purple, server.ToString());
-				}
-				catch (ConfigurationError error)
-				{
-					GlobalLog.Error("Server configuration invalid, reason: %s", error.message);
-					return 1;
-				}
+				GlobalLog.ColorMessage(ConsoleColors.Green, "Using Server:");
+				GlobalLog.ColorMessage(ConsoleColors.Purple, current.ToString());
 			}
 			
 			if (DisableDaemon)
