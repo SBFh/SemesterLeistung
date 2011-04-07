@@ -13,5 +13,17 @@ namespace Daemon.Helpers
 			
 			return result;
 		}
+		
+		public List<T> CopyArray(T[] array)
+		{
+			List<T> result = new List<T>();
+			
+			for (int i = 0; i < array.length; i++)
+			{
+				result.append(array[i]);
+			}
+			
+			return result;
+		}
 	}
 }

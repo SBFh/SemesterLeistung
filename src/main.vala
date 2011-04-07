@@ -38,6 +38,10 @@ namespace Daemon
 		public static string[] Servers;
 
 		public static string? Nicknames = null;
+		
+		public static bool IgnoreConfig = false;
+		
+		public static bool OverrideValues = false;
 
 		private const OptionEntry[] _options = 
 		{
@@ -87,6 +91,24 @@ namespace Daemon
  				null 
 			},
  			{
+ 				"ignore-config", 
+ 				'i', 
+ 				0, 
+ 				OptionArg.NONE, 
+				ref IgnoreConfig,
+ 				"Ignore all settings from the configuration file.", 
+ 				null 
+			},
+ 			{
+ 				"override-config", 
+ 				'o', 
+ 				0, 
+ 				OptionArg.NONE, 
+				ref OverrideValues,
+ 				"Override all Configuration options. Otherwise appends Servers and Nicknames.", 
+ 				null 
+			},
+ 			{
  				"nick", 
  				'n', 
  				0, 
@@ -116,31 +138,43 @@ namespace Daemon
 				return 1;
 			}
 			
-			ConfigFile = ConfigFile ?? Environment.get_current_dir() + "/config.xml";
+			GlobalLog.ColorMessage(ConsoleColors.Blue, "Initializing the Application");
 			
-			File configFile = File.new_for_path(ConfigFile);
+			ConfigurationFile configuration = null;
 			
-			if (configFile.query_exists())
+			if (IgnoreConfig)
 			{
-				GlobalLog.ColorMessage(ConsoleColors.Green, "Using Configuration File: %s", ConfigFile);
-				
-				try
-				{
-					ConfigurationFile configuration = ConfigurationFile.Load(ConfigFile);
-				}
-				catch (ConfigurationError error)
-				{
-					GlobalLog.Error("Loading Configuration File %s failed: %s", ConfigFile, error.message);
-					return 1;
-				}
-				
+				GlobalLog.Warning("Ignoring Configuration File");
 			}
 			else
 			{
-				GlobalLog.Warning("Could not open Configuration File: %s", ConfigFile);
-			}
+				ConfigFile = ConfigFile ?? Environment.get_current_dir() + "/config.xml";
 			
-			GlobalLog.ColorMessage(ConsoleColors.Blue, "Initializing the Application");
+				File configFile = File.new_for_path(ConfigFile);
+			
+				if (configFile.query_exists())
+				{
+					GlobalLog.ColorMessage(ConsoleColors.Green, "Using Configuration File: %s", ConfigFile);
+				
+					try
+					{
+						configuration = ConfigurationFile.Load(ConfigFile);
+					
+						GlobalLog.ColorMessage(ConsoleColors.Green, "Successfully loaded Configuration File, settings:");
+						GlobalLog.ColorMessage(ConsoleColors.Blue, configuration.ToString());
+					}
+					catch (ConfigurationError error)
+					{
+						GlobalLog.Error("Loading Configuration File %s failed: %s", ConfigFile, error.message);
+						return 1;
+					}
+				
+				}
+				else
+				{
+					GlobalLog.Warning("Could not open Configuration File: %s", ConfigFile);
+				}
+			}
 			
 			if (LogLibrary == null)
 			{

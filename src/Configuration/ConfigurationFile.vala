@@ -12,21 +12,13 @@ namespace Daemon.Configuration
 	{
 		private Doc* _document;
 		private Xml.Node* _root;
-	
-		private ConfigurationFile(string filename) throws ConfigurationError
+		
+		private void Parse() throws ConfigurationError
 		{
-			_document = Parser.parse_file(filename);
-			
-			if (_document == null)
-			{
-				throw new ConfigurationError.Invalid("Configuration file could not be opened");
-			}
-			
-			_root = _document->get_root_element();
+_root = _document->get_root_element();
 			
 			if (_root == null)
 			{
-				Release();
 				return;
 			}
 			
@@ -152,16 +144,42 @@ namespace Daemon.Configuration
 	    	ListHelper<ServerConfiguration> serverHelper = new ListHelper<ServerConfiguration>();
 	    	Servers = serverHelper.CopyList(servers);
 			}
-			
 		}
-		
-
+	
+		private ConfigurationFile(string filename) throws ConfigurationError
+		{
+			_document = Parser.parse_file(filename);
+			
+			if (_document == null)
+			{
+				throw new ConfigurationError.Invalid("Configuration file could not be opened");
+			}
+		}
 		
 		public bool DisableDaemon { get; private set; }
 		public string? LogLibrary { get; private set; }
 		public string? LogFile { get; private set; }
 		public string[]? Nicknames { get; private set; }
 		public ServerConfiguration[]? Servers { get; private set; }
+		
+		private const string _stringFormat = "Disable Daemon: %s\nLog Library: %s\nLog File: %s\nNicknames: %s\nServers:\n%s";
+		
+		public string ToString()
+		{
+			string nicknamesString = Nicknames == null ? "None" : string.joinv(", ", Nicknames);
+			string serversString = "none";
+			
+			if (Servers != null)
+			{
+				serversString = "";
+				foreach (ServerConfiguration current in Servers)
+				{
+					serversString += current.ToString() + "\n";
+				}
+			}
+			
+			return _stringFormat.printf(DisableDaemon ? "true" : "false", LogLibrary, LogFile, nicknamesString, serversString);
+		}
 		
 		private Xml.Node* GetElement(Xml.Node* node, string elementName)
 		{
@@ -197,7 +215,26 @@ namespace Daemon.Configuration
 		
 		public static ConfigurationFile Load(string filename) throws ConfigurationError
 		{
-			return new ConfigurationFile(filename);
+			ConfigurationFile file = null;
+			
+			try
+			{
+				file = new ConfigurationFile(filename);
+				file.Parse();
+			}
+			catch (ConfigurationError error)
+			{
+				throw error;
+			}
+			finally
+			{
+				if (file != null)
+				{
+					file.Release();
+				}
+			}
+			
+			return file;
 		}
 	}
 }
