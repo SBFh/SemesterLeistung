@@ -16,10 +16,12 @@ SemesterLeistung_SOURCES = \
 	PluginManager.vala \
 	IRC/IRCConnection.vala \
 	IRC/Command.vala \
+	IRC/User.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \
 	Helpers/ListHelper.vala \
+	Helpers/TypeHelper.vala \
 	Events/Event.vala \
 	Events/StatusEvent.vala \
 	Events/ChangeNameEvent.vala \

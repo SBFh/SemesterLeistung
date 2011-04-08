@@ -2,7 +2,7 @@ using Daemon.Configuration;
 
 namespace Daemon.IRC
 {
-	errordomain IRCError
+	public errordomain IRCError
 	{
 		InvalidHost,
 		DNSError,
@@ -140,19 +140,22 @@ namespace Daemon.IRC
 		
 		private void ReceivedCommand(Command command)
 		{
-			GlobalLog.ColorMessage(ConsoleColors.Blue, "@%s Received - %s", ServerConfiguration.Name, command.ToString());
+			ConsoleColors color = command.Code != null ? ConsoleColors.Purple : ConsoleColors.Blue;
+			GlobalLog.ColorMessage(color, "@%s Received - %s", ServerConfiguration.Name, command.ToString());
 			if (!_sentLogin)
 			{
 				_sentLogin = true;
-				SendCommand(new Command("USER", new string[] { "Simon", "localhost", "localhost", "Simon" }));
-				SendCommand(new Command("NICK", new string[] { "LolBot" }));
+				SendCommand(new Command(CommandTypes.User, new string[] { "Simon", "localhost", "localhost", "Simon" }));
+				SendCommand(new Command(CommandTypes.Nick, new string[] { "LolBot" }));
+				SendCommand(new Command(CommandTypes.Join, new string[] { "#main" }));
 			}
 		}
 		
 		private void SendCommand(Command command)
 		{
-			string prepared = command.Prepare();
-			_socket.output_stream.write_async(prepared.data, prepared.length);
+			string prepared = command.Prepare() + "\r\n";
+			_socket.output_stream.write(prepared.data);
+			//_socket.output_stream.write_async(prepared.data, prepared.length);
 			GlobalLog.ColorMessage(ConsoleColors.Yellow, "@%s Sent - %s", ServerConfiguration.Name, command.ToString());
 //			_channel.write_chars(prepared, null);
 		}
