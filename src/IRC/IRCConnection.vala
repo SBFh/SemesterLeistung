@@ -5,17 +5,22 @@ namespace Daemon.IRC
 	public errordomain IRCError
 	{
 		InvalidHost,
-		DNSError,
-		ThreadError
+		DNSError//,
+		//ThreadError
 	}
 
 	public class IRCConnection : Object
 	{
+		public static string RealName { get; set; }
+		public static string[] Nicknames { get; set; }
+		public static string Hostname { get; set; }
+		public static string Username { get; set; }
+	
 		private SocketClient _connection;
 	
 		public ServerConfiguration ServerConfiguration { get; private set; }
 		
-		private unowned Thread<void*> _connectionThread;
+//		private unowned Thread<void*> _connectionThread;
 		
 		public string Host { get; private set; }
 
@@ -61,17 +66,18 @@ namespace Daemon.IRC
 			
 			Endpoint = new InetSocketAddress(Address, configuration.Port);
 			
-			try
+			/*try
 			{
 				_connectionThread = Thread.create<void*>(StartConnection, true);
 			}
 			catch (ThreadError error)
 			{
 				throw new IRCError.ThreadError(error.message);
-			}
+			}*/
+			Connect();
 		}
 		
-		void* StartConnection()
+		/*void* StartConnection()
 		{
 			Connect();
 			
@@ -81,13 +87,16 @@ namespace Daemon.IRC
 		public void Join()
 		{
 			_connectionThread.join();
-		}
+		}*/
 		
 		private int _lastFd;
 		
 		private void Connect()
 		{
+			_sentAuth = false;
+			_sentNick = false;
 			_channels = new List<Channel>();
+			
 			_connection = new SocketClient();
 			_connection.set_protocol(SocketProtocol.TCP);
 			_connection.set_timeout(60);
@@ -147,8 +156,6 @@ namespace Daemon.IRC
 		
 		private void Connected()
 		{
-			_sentLogin = false;
-			
 			GlobalLog.ColorMessage(ConsoleColors.Green, "Successfully connected to Server: %s", ServerConfiguration.Name);
 		}
 		
@@ -176,8 +183,6 @@ namespace Daemon.IRC
 			GlobalLog.Warning("Disconnected from Server: %s", ServerConfiguration.Name);
 			Reconnect(0);
 		}
-		
-		bool _sentLogin = false;
 		
 		private void SendCommand(Command command)
 		{
@@ -272,18 +277,21 @@ namespace Daemon.IRC
 			return true;
 		}
 		
+		bool _sentAuth = false;
+		bool _sentNick = false;
+		
 		private void ReceivedCommand(Command command)
 		{
 			ConsoleColors color = command.Code != null ? ConsoleColors.Purple : ConsoleColors.Blue;
 			GlobalLog.ColorMessage(color, "@%s Received\n%s", ServerConfiguration.Name, command.ToString());
 			
-			if (!_sentLogin)
+			/*if (!_sentLogin)
 			{
 				_sentLogin = true;
 				QueueCommand(new Command(CommandTypes.User, new string[] { "Simon", "localhost", "localhost", "Simon" }));
 				QueueCommand(new Command(CommandTypes.Nick, new string[] { "Simon" }));
 				QueueCommand(new Command(CommandTypes.Join, new string[] { "#main" }));
-			}
+			}*/
 			
 		}
 	}

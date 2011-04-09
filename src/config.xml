@@ -2,6 +2,7 @@
 <configuration>
 	<disable-daemon>true</disable-daemon>
 	<log-file>/home/simon/data.db</log-file>
+	<realname>somebot</realname>
 	<nicknames>
 		<nickname>irc-bot</nickname>
 		<nickname>irc-bot2</nickname>

@@ -25,6 +25,9 @@ _root = _document->get_root_element();
 			DisableDaemon = GetElementValue(_root, "disable-daemon") == "true";
 			LogLibrary = GetElementValue(_root, "log-library");
 			LogFile = GetElementValue(_root, "log-file");
+			RealName = GetElementValue(_root, "realname");
+			Host = GetElementValue(_root, "hostname");
+			Username = GetElementValue(_root, "username");
 			
 			Xml.Node* nicknamesNode = GetElement(_root, "nicknames");
 			
@@ -160,25 +163,95 @@ _root = _document->get_root_element();
 		public string? LogLibrary { get; private set; }
 		public string? LogFile { get; private set; }
 		public string[]? Nicknames { get; private set; }
+		public string? RealName { get; private set; }
+		public string? Host { get; private set; }
+		public string? Username { get; private set; }
 		public ServerConfiguration[]? Servers { get; private set; }
 		
 		private const string _stringFormat = "Disable Daemon: %s\nLog Library: %s\nLog File: %s\nNicknames: %s\nServers:\n%s";
 		
 		public string ToString()
 		{
-			string nicknamesString = Nicknames == null ? "None" : string.joinv(", ", Nicknames);
-			string serversString = "none";
+			StringBuilder builder = new StringBuilder();
 			
-			if (Servers != null)
+			builder.append("{\n\t");
+			builder.append("Disable Daemon: ");
+			builder.append(DisableDaemon ? "true" : "false");
+			
+			if (LogLibrary != null)
 			{
-				serversString = "";
-				foreach (ServerConfiguration current in Servers)
-				{
-					serversString += current.ToString() + "\n";
-				}
+				builder.append(",\n\t");
+				builder.append("Log Library: ");
+				builder.append(LogLibrary);
 			}
 			
-			return _stringFormat.printf(DisableDaemon ? "true" : "false", LogLibrary, LogFile, nicknamesString, serversString);
+			if (LogFile != null)
+			{
+				builder.append(",\n\t");
+				builder.append("Log File: ");
+				builder.append(LogFile);
+			}
+			
+			if (RealName != null)
+			{
+				builder.append(",\n\t");
+				builder.append("Real Name: ");
+				builder.append(RealName);
+			}
+			
+			if (Host != null)
+			{
+				builder.append(",\n\t");
+				builder.append("Host: ");
+				builder.append(Host);
+			}
+			
+			if (Username != null)
+			{
+				builder.append(",\n\t");
+				builder.append("Username: ");
+				builder.append(Username);
+			}
+			
+			if (Nicknames != null && Nicknames.length > 0)
+			{
+				builder.append(",\n\t");
+				builder.append("Nicknames: ");
+				builder.append("\n\t[\n\t\t");
+				
+				for (int i = 0; i < Nicknames.length; i++)
+				{
+					builder.append(Nicknames[i]);	
+					if (i < Nicknames.length - 1)
+					{
+						builder.append(",\n\t\t");
+					}
+				}
+				
+				builder.append("\n\t]");
+			}
+			
+			if (Servers != null && Servers.length > 0)
+			{
+				builder.append(",\n\t");
+				builder.append("Servers: ");
+				builder.append("\n\t[\n");
+				
+				for (int i = 0; i < Servers.length; i++)
+				{
+					builder.append(TypeHelper.IndentString(Servers[i].ToString(), 2));
+					if (i < Servers.length - 1)
+					{
+						builder.append(",\n");
+					}
+				}
+				
+				builder.append("\n\t]");
+			}
+			
+			return builder.str;
+		
+			
 		}
 		
 		private Xml.Node* GetElement(Xml.Node* node, string elementName)

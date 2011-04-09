@@ -62,11 +62,37 @@ namespace Daemon.Configuration
 			return new ServerConfiguration(host, port, channels);
 		}
 		
-		private const string _stringFormat = "Host: %s\nPort: %i\nChannels: %s\nName: %s";
-		
 		public string ToString()
 		{
-			return _stringFormat.printf(Host, Port, string.joinv(", ", Channels), Name);
+			StringBuilder builder = new StringBuilder();
+			
+			builder.append("{\n\t");
+			builder.append("Host: ");
+			builder.append(Host);
+			builder.append(",\n\t");
+			builder.append("Port: ");
+			builder.append(Port.to_string());
+			
+			if (Channels != null && Channels.length > 0)
+			{
+				builder.append(",\n\tChannels:\n\t[");
+				builder.append("\n\t\t");
+				
+				for (int i = 0; i < Channels.length; i++)
+				{
+					builder.append(Channels[i]);
+					if (i < Channels.length - 1)
+					{
+						builder.append(",\n\t\t");
+					}
+				}
+				
+				builder.append("\n\t]");
+			}
+			
+			builder.append("\n}");
+			
+			return builder.str;
 		}
 	}
 }

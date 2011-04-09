@@ -32,6 +32,12 @@ namespace Daemon
 		public static bool IgnoreConfig = false;
 		
 		public static bool OverrideValues = false;
+		
+		public static string? RealName = null;
+		
+		public static string? Host = null;
+		
+		public static string? Username = null;
 
 		private const OptionEntry[] _options = 
 		{
@@ -105,6 +111,33 @@ namespace Daemon
  				OptionArg.STRING, 
 				ref Nicknames,
  				"The Nicknames used by the bot. Comma-Separated.", 
+ 				null 
+			},
+ 			{
+ 				"real-name", 
+ 				'r', 
+ 				0, 
+ 				OptionArg.STRING, 
+				ref RealName,
+ 				"The \"Real name\" sent to the IRC Servers.", 
+ 				null 
+			},
+ 			{
+ 				"host", 
+ 				'h', 
+ 				0, 
+ 				OptionArg.STRING, 
+				ref Host,
+ 				"Override the hostname sent to the IRC Servers.", 
+ 				null 
+			},
+ 			{
+ 				"username", 
+ 				'u', 
+ 				0, 
+ 				OptionArg.STRING, 
+				ref Username,
+ 				"Set the username sent to the IRC Servers.", 
  				null 
 			},
 			{ null } 
@@ -221,11 +254,6 @@ namespace Daemon
 				
 			}
 			
-			foreach (string current in nicknames)
-			{
-				GlobalLog.ColorMessage(ConsoleColors.Purple, current);
-			}
-			
 			if (nicknames.length == 0)
 			{
 				GlobalLog.Error("No nicknames specified");
@@ -277,6 +305,78 @@ namespace Daemon
 				return 1;
 			}
 			
+			if (RealName == null && configuration != null)
+			{
+				RealName = configuration.RealName;
+			}
+			
+			if (RealName == null || RealName.length == 0)
+			{
+				GlobalLog.Error("No \"Real Name\" specified");
+				return 1;
+			}
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Using \"Real Name\": '%s'", RealName);
+			
+			IRCConnection.RealName = RealName;
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Using nicknames:");
+			
+			StringBuilder nicknameBuilder = new StringBuilder();
+			
+			nicknameBuilder.append("[\n\t");
+			
+			for (int i = 0; i < nicknames.length; i++)
+			{
+				nicknameBuilder.append(nicknames[i]);
+				if (i < nicknames.length - 1)
+				{
+					nicknameBuilder.append(",\n\t");
+				}
+			}
+			
+			nicknameBuilder.append("\n]");
+			
+			GlobalLog.ColorMessage(ConsoleColors.Purple, nicknameBuilder.str);
+			
+			IRCConnection.Nicknames = nicknames;
+			
+			string? host = Host;
+			
+			if (Host == null && configuration != null)
+			{
+				host = configuration.Host;
+			}
+			
+			if (host != null && host.length == 0)
+			{
+				GlobalLog.Error("Invalid hostname");
+				return 1;
+			}
+			
+			host = host ?? "none";
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Sending host: %s", host);
+			
+			IRCConnection.Hostname = host;
+			
+			string? username = Username;
+			
+			if (Username == null && configuration != null)
+			{
+				username = configuration.Username;
+			}
+			
+			if (username == null || username.length == 0)
+			{
+				GlobalLog.Error("No Username set.");
+				return 1;
+			}
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Sending Username: %s", username);
+			
+			IRCConnection.Username = username;
+			
 			foreach (ServerConfiguration current in servers)
 			{
 				GlobalLog.ColorMessage(ConsoleColors.Green, "Using Server:");
@@ -306,6 +406,8 @@ namespace Daemon
 				GlobalLog.Error("Log Library threw Exception: %s", error.message);
 				return 1;
 			}
+			
+			return 0;
 			
 			IRCConnection testConnection = new IRCConnection(servers[0]);
 			
