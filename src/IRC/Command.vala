@@ -74,6 +74,11 @@ namespace Daemon.IRC
 		public string? Name { get; private set; default = null; }
 		public string[] Parameters { get; private set; }
 		public int? Code { get; private set; default = null; }
+		
+		public Entity? Sender { get; private set; default = null; }
+		public Entity? Receiver { get; private set; default = null; }
+		
+		public Entity[] Receivers { get; private set; default = new Entity[0]; }
 	
 		public CommandTypes Type { get; private set; }
 	
@@ -88,7 +93,7 @@ namespace Daemon.IRC
 			Prefix = prefix;
 			Parameters = parameters;
 			
-			InitPrefix();
+			InitEntities();
 		}
 		
 		public Command.WithPrefix(string? prefix, CommandTypes type, string[] parameters)
@@ -98,41 +103,114 @@ namespace Daemon.IRC
 			Name = type.ToString();
 			Parameters = parameters;
 			
-			InitPrefix();
+			InitEntities();
 		}
 		
-		private void InitPrefix()
+		private void InitEntities()
 		{
 			if (Prefix != null)
 			{
 				try
 				{
-					Sender = Sender.Parse(Prefix);
+					Sender = Entity.Parse(Prefix);
 				}
 				catch
 				{
 					Sender = null;
 				}
 			}
+			
+			if (Parameters != null && Parameters.length > 0)
+			{
+				string[] receivers = Parameters[0].split(",");
+				
+				List<Entity> receiverList = new List<Entity>();
+				
+				bool receiverSet = false;
+				
+				for (int i = 0; i < receivers.length; i++)
+				{
+					try
+					{
+						Entity receiver = Entity.Parse(receivers[i].strip());
+						receiverList.append(receiver);
+						if (!receiverSet)
+						{
+							receiverSet = true;
+							Receiver = receiver;
+						}						
+					}
+					catch (EntityError error)
+					{
+
+					}
+				}
+				ListHelper<Entity> helper = new ListHelper<Entity>();
+				Receivers = helper.CopyList(receiverList);
+			}
 		}
-		
-		public Entity? Sender { get; private set; default = null; }
-		
-		private const string _stringFormat = "Command: %s - Parameters: %s";
-		private const string _stringFormatWithPrefix = "Command: %s - Prefix: %s - Parameters: %s";
 		
 		public string ToString()
 		{
-			string parametersString = string.joinv(", ", Parameters);
+			StringBuilder builder = new StringBuilder();
+			
+			builder.append("{ \n\t");
+			builder.append("Command: ");
+			builder.append(Name ?? Code.to_string());
 			
 			if (Prefix != null)
 			{
-				return _stringFormatWithPrefix.printf(Name ?? Code.to_string(), Prefix, parametersString);
+				builder.append(",\n\t");
+				builder.append("Prefix: ");
+				builder.append(Prefix);
 			}
-			else
+			
+			if (Parameters != null && Parameters.length > 0)
 			{
-				return _stringFormat.printf(Name ?? Code.to_string(), parametersString);
+				builder.append(",\n\t");
+				builder.append("Parameters:");
+				builder.append("\n\t[\n\t\t");
+				
+				for (int i = 0; i < Parameters.length; i++)
+				{
+					builder.append(Parameters[i]);
+					if (i < Parameters.length - 1)
+					{
+						builder.append(",\n\t\t");
+					}
+				}
+				
+				builder.append("\n\t]");
 			}
+			
+			if (Sender != null)
+			{
+				builder.append(",\n\t");
+				builder.append("Sender: ");
+				builder.append(Sender.ToString());
+			}
+			
+			if (Receivers != null && Receivers.length != 0)
+			{
+				builder.append(",\n\t");
+				builder.append("Receivers:");
+				builder.append("\n\t[\n\t\t");
+				
+				for (int i = 0; i < Receivers.length; i++)
+				{
+					builder.append(Receivers[i].ToString());
+					if (i < Receivers.length - 1)
+					{
+						builder.append(",\n\t\t");
+					}
+				}
+				
+				builder.append("\n\t]");
+			}
+			
+			builder.append("\n}");
+		
+			return builder.str;
 		}
 		
 		public string Prepare()

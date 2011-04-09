@@ -30,6 +30,10 @@ namespace Daemon.IRC
 		private DataInputStream _inputStream;
 		
 		private IOChannel _channel;
+		
+		private List<Channel> _channels = new List<Channel>();
+		
+		private string _nickname;
 	
 		public IRCConnection(ServerConfiguration configuration) throws IRCError
 		{
@@ -79,8 +83,11 @@ namespace Daemon.IRC
 			_connectionThread.join();
 		}
 		
+		private int _lastFd;
+		
 		private void Connect()
 		{
+			_channels = new List<Channel>();
 			_connection = new SocketClient();
 			_connection.set_protocol(SocketProtocol.TCP);
 			_connection.set_timeout(60);
@@ -92,6 +99,7 @@ namespace Daemon.IRC
 			}
 			catch
 			{
+				GlobalLog.Warning("Failed to connect to Server %s", ServerConfiguration.Name);
 				Reconnect(_reconnectTime);
 				return;
 			}
@@ -100,26 +108,40 @@ namespace Daemon.IRC
 
 			Connected();
 			
-			_channel = new IOChannel.unix_new(_socket.socket.fd);
+			if (_socket.socket.fd != _lastFd)
+			{
+				_lastFd = _socket.socket.fd;
+				
+				if (_channel != null)
+				{
+					try
+					{
+						_channel.shutdown(false);
+					}
+					catch
+					{
+					
+					}
+					_channel = null;
+				}
+				
+				_channel = new IOChannel.unix_new(_socket.socket.fd);
+
+				_channel.add_watch(IOCondition.IN | IOCondition.OUT | IOCondition.HUP | IOCondition.ERR | IOCondition.PRI | IOCondition.NVAL, InputWatch);
 			
-			_channel.add_watch(IOCondition.IN, InputWatch);
+				_channel.init();
+			}
+			
 		}
 		
 		private const int _reconnectTime = 5;
 		
+		private List<Command> _waitingCommands = new List<Command>();
+		
 		private void Reconnect(int wait)
 		{
-			if (_socket != null)
-			{
-				_socket.dispose();
-				_socket = null;
-			}
-			if (_connection != null)
-			{
-				_connection.dispose();
-				_connection = null;
-			}
 			Thread.usleep(wait * 1000000);
+			GlobalLog.Warning("Trying to reconnect to Server %s", ServerConfiguration.Name);
 			Connect();
 		}
 		
@@ -132,39 +154,71 @@ namespace Daemon.IRC
 		
 		private void Disconnected()
 		{
+			try
+			{
+				_socket.socket.shutdown(true, true);
+			}
+			catch
+			{
+			
+			}
+			_socket.socket.dispose();
+			try
+			{
+				_socket.close();
+			}
+			catch
+			{
+			
+			}
+			_socket.dispose();
+			_connection.dispose();
 			GlobalLog.Warning("Disconnected from Server: %s", ServerConfiguration.Name);
 			Reconnect(0);
 		}
 		
 		bool _sentLogin = false;
 		
-		private void ReceivedCommand(Command command)
-		{
-			ConsoleColors color = command.Code != null ? ConsoleColors.Purple : ConsoleColors.Blue;
-			GlobalLog.ColorMessage(color, "@%s Received - %s", ServerConfiguration.Name, command.ToString());
-			if (!_sentLogin)
-			{
-				_sentLogin = true;
-				SendCommand(new Command(CommandTypes.User, new string[] { "Simon", "localhost", "localhost", "Simon" }));
-				SendCommand(new Command(CommandTypes.Nick, new string[] { "LolBot" }));
-				SendCommand(new Command(CommandTypes.Join, new string[] { "#main" }));
-			}
-		}
-		
 		private void SendCommand(Command command)
 		{
 			string prepared = command.Prepare() + "\r\n";
-			_socket.output_stream.write(prepared.data);
-			//_socket.output_stream.write_async(prepared.data, prepared.length);
-			GlobalLog.ColorMessage(ConsoleColors.Yellow, "@%s Sent - %s", ServerConfiguration.Name, command.ToString());
-//			_channel.write_chars(prepared, null);
+			try
+			{
+				_socket.output_stream.write(prepared.data);
+			}
+			catch
+			{
+				Disconnected();
+				return;
+			}
+			GlobalLog.ColorMessage(ConsoleColors.Yellow, "@%s Sent\n%s", ServerConfiguration.Name, command.ToString());
 		}
 		
-		public bool InputWatch(IOChannel source, IOCondition condition)
+		private void QueueCommand(Command command)
+		{
+			_waitingCommands.append(command);
+		}
+		
+		private void Receive(IOChannel source)
 		{
 			string receivedText;
 			
-			source.read_line(out receivedText, null, null);
+			IOStatus status;
+			
+			try
+			{
+				status = source.read_line(out receivedText, null, null);
+			}
+			catch
+			{
+				status = IOStatus.ERROR;
+			}
+			
+			if (status == IOStatus.EOF || status == IOStatus.ERROR)
+			{
+				Disconnected();
+				return;
+			}
 
 			Command receivedCommand = null;
 			
@@ -175,15 +229,62 @@ namespace Daemon.IRC
 			catch (CommandError error)
 			{
 				GlobalLog.Warning("@%s - Could not understand command '%s", ServerConfiguration.Name, receivedText);
-				return true;
+				return;
 			}
 			
 			if (receivedCommand != null)
 			{
 				ReceivedCommand(receivedCommand);
 			}
+		}
+		
+		public bool InputWatch(IOChannel source, IOCondition condition)
+		{
+			if ((condition & IOCondition.ERR) == IOCondition.ERR)
+			{
+				GlobalLog.Error("@%s - Connection Error", ServerConfiguration.Name);
+				if (_socket.is_closed())
+				{
+					Disconnected();
+				}
+				return true;
+			}
+			if ((condition & IOCondition.NVAL) == IOCondition.NVAL || (condition & IOCondition.HUP) == IOCondition.HUP)
+			{
+				Disconnected();
+				return true;
+			}
+		
+			if ((condition & IOCondition.OUT) == IOCondition.OUT)
+			{
+				if (_waitingCommands.length() > 0)
+				{
+					Command commandToSend = _waitingCommands.nth_data(0);
+					_waitingCommands.remove(commandToSend);
+					SendCommand(commandToSend);
+				}
+			}
+			if ((condition & IOCondition.PRI) == IOCondition.PRI || (condition & IOCondition.IN) == IOCondition.IN)
+			{
+				Receive(source);
+			}
 			
 			return true;
+		}
+		
+		private void ReceivedCommand(Command command)
+		{
+			ConsoleColors color = command.Code != null ? ConsoleColors.Purple : ConsoleColors.Blue;
+			GlobalLog.ColorMessage(color, "@%s Received\n%s", ServerConfiguration.Name, command.ToString());
+			
+			if (!_sentLogin)
+			{
+				_sentLogin = true;
+				QueueCommand(new Command(CommandTypes.User, new string[] { "Simon", "localhost", "localhost", "Simon" }));
+				QueueCommand(new Command(CommandTypes.Nick, new string[] { "Simon" }));
+				QueueCommand(new Command(CommandTypes.Join, new string[] { "#main" }));
+			}
+			
 		}
 	}
 }

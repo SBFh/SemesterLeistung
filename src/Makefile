@@ -42,8 +42,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	Data/IDataAccess.c Data/SqliteData.c Events/ChangeNameEvent.c \
 	Events/Event.c Events/MessageEvent.c Events/StatusEvent.c \
 	GlobalLog.c Helpers/DateTimeConverter.c Helpers/ListHelper.c \
-	Helpers/TypeHelper.c IRC/Command.c IRC/IRCConnection.c \
-	IRC/User.c PluginManager.c PluginRegistrar.c \
+	Helpers/TypeHelper.c IRC/Channel.c IRC/Command.c IRC/Entity.c \
+	IRC/IRCConnection.c PluginManager.c PluginRegistrar.c \
 	SemesterLeistung_vala.stamp main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -59,12 +59,13 @@ am__objects_1 =
 am_SemesterLeistung_OBJECTS = main.$(OBJEXT) GlobalLog.$(OBJEXT) \
 	ConnectionHub.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
 	PluginManager.$(OBJEXT) IRCConnection.$(OBJEXT) \
-	Command.$(OBJEXT) User.$(OBJEXT) IDataAccess.$(OBJEXT) \
-	SqliteData.$(OBJEXT) DateTimeConverter.$(OBJEXT) \
-	ListHelper.$(OBJEXT) TypeHelper.$(OBJEXT) Event.$(OBJEXT) \
-	StatusEvent.$(OBJEXT) ChangeNameEvent.$(OBJEXT) \
-	MessageEvent.$(OBJEXT) ServerConfiguration.$(OBJEXT) \
-	ConfigurationFile.$(OBJEXT) $(am__objects_1)
+	Command.$(OBJEXT) Entity.$(OBJEXT) Channel.$(OBJEXT) \
+	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
+	DateTimeConverter.$(OBJEXT) ListHelper.$(OBJEXT) \
+	TypeHelper.$(OBJEXT) Event.$(OBJEXT) StatusEvent.$(OBJEXT) \
+	ChangeNameEvent.$(OBJEXT) MessageEvent.$(OBJEXT) \
+	ServerConfiguration.$(OBJEXT) ConfigurationFile.$(OBJEXT) \
+	$(am__objects_1)
 SemesterLeistung_OBJECTS = $(am_SemesterLeistung_OBJECTS)
 am__DEPENDENCIES_1 =
 SemesterLeistung_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -248,7 +249,8 @@ SemesterLeistung_SOURCES = \
 	PluginManager.vala \
 	IRC/IRCConnection.vala \
 	IRC/Command.vala \
-	IRC/User.vala \
+	IRC/Entity.vala \
+	IRC/Channel.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \
@@ -375,10 +377,12 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/ChangeNameEvent.Po
+include ./$(DEPDIR)/Channel.Po
 include ./$(DEPDIR)/Command.Po
 include ./$(DEPDIR)/ConfigurationFile.Po
 include ./$(DEPDIR)/ConnectionHub.Po
 include ./$(DEPDIR)/DateTimeConverter.Po
+include ./$(DEPDIR)/Entity.Po
 include ./$(DEPDIR)/Event.Po
 include ./$(DEPDIR)/GlobalLog.Po
 include ./$(DEPDIR)/IDataAccess.Po
@@ -391,7 +395,6 @@ include ./$(DEPDIR)/ServerConfiguration.Po
 include ./$(DEPDIR)/SqliteData.Po
 include ./$(DEPDIR)/StatusEvent.Po
 include ./$(DEPDIR)/TypeHelper.Po
-include ./$(DEPDIR)/User.Po
 include ./$(DEPDIR)/main.Po
 
 .c.o:
@@ -443,19 +446,33 @@ Command.obj: IRC/Command.c
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Command.obj `if test -f 'IRC/Command.c'; then $(CYGPATH_W) 'IRC/Command.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Command.c'; fi`
 
-User.o: IRC/User.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT User.o -MD -MP -MF $(DEPDIR)/User.Tpo -c -o User.o `test -f 'IRC/User.c' || echo '$(srcdir)/'`IRC/User.c
-	$(am__mv) $(DEPDIR)/User.Tpo $(DEPDIR)/User.Po
-#	source='IRC/User.c' object='User.o' libtool=no \
+Entity.o: IRC/Entity.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Entity.o -MD -MP -MF $(DEPDIR)/Entity.Tpo -c -o Entity.o `test -f 'IRC/Entity.c' || echo '$(srcdir)/'`IRC/Entity.c
+	$(am__mv) $(DEPDIR)/Entity.Tpo $(DEPDIR)/Entity.Po
+#	source='IRC/Entity.c' object='Entity.o' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o User.o `test -f 'IRC/User.c' || echo '$(srcdir)/'`IRC/User.c
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Entity.o `test -f 'IRC/Entity.c' || echo '$(srcdir)/'`IRC/Entity.c
 
-User.obj: IRC/User.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT User.obj -MD -MP -MF $(DEPDIR)/User.Tpo -c -o User.obj `if test -f 'IRC/User.c'; then $(CYGPATH_W) 'IRC/User.c'; else $(CYGPATH_W) '$(srcdir)/IRC/User.c'; fi`
-	$(am__mv) $(DEPDIR)/User.Tpo $(DEPDIR)/User.Po
-#	source='IRC/User.c' object='User.obj' libtool=no \
+Entity.obj: IRC/Entity.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Entity.obj -MD -MP -MF $(DEPDIR)/Entity.Tpo -c -o Entity.obj `if test -f 'IRC/Entity.c'; then $(CYGPATH_W) 'IRC/Entity.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Entity.c'; fi`
+	$(am__mv) $(DEPDIR)/Entity.Tpo $(DEPDIR)/Entity.Po
+#	source='IRC/Entity.c' object='Entity.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o User.obj `if test -f 'IRC/User.c'; then $(CYGPATH_W) 'IRC/User.c'; else $(CYGPATH_W) '$(srcdir)/IRC/User.c'; fi`
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Entity.obj `if test -f 'IRC/Entity.c'; then $(CYGPATH_W) 'IRC/Entity.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Entity.c'; fi`
+
+Channel.o: IRC/Channel.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Channel.o -MD -MP -MF $(DEPDIR)/Channel.Tpo -c -o Channel.o `test -f 'IRC/Channel.c' || echo '$(srcdir)/'`IRC/Channel.c
+	$(am__mv) $(DEPDIR)/Channel.Tpo $(DEPDIR)/Channel.Po
+#	source='IRC/Channel.c' object='Channel.o' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Channel.o `test -f 'IRC/Channel.c' || echo '$(srcdir)/'`IRC/Channel.c
+
+Channel.obj: IRC/Channel.c
+	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Channel.obj -MD -MP -MF $(DEPDIR)/Channel.Tpo -c -o Channel.obj `if test -f 'IRC/Channel.c'; then $(CYGPATH_W) 'IRC/Channel.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Channel.c'; fi`
+	$(am__mv) $(DEPDIR)/Channel.Tpo $(DEPDIR)/Channel.Po
+#	source='IRC/Channel.c' object='Channel.obj' libtool=no \
+#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
+#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Channel.obj `if test -f 'IRC/Channel.c'; then $(CYGPATH_W) 'IRC/Channel.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Channel.c'; fi`
 
 IDataAccess.o: Data/IDataAccess.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IDataAccess.o -MD -MP -MF $(DEPDIR)/IDataAccess.Tpo -c -o IDataAccess.o `test -f 'Data/IDataAccess.c' || echo '$(srcdir)/'`Data/IDataAccess.c
@@ -645,7 +662,12 @@ $(srcdir)/IRC/Command.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
-$(srcdir)/IRC/User.c: $(srcdir)/SemesterLeistung_vala.stamp
+$(srcdir)/IRC/Entity.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/IRC/Channel.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
@@ -843,9 +865,10 @@ maintainer-clean-generic:
 	-rm -f Helpers/DateTimeConverter.c
 	-rm -f Helpers/ListHelper.c
 	-rm -f Helpers/TypeHelper.c
+	-rm -f IRC/Channel.c
 	-rm -f IRC/Command.c
+	-rm -f IRC/Entity.c
 	-rm -f IRC/IRCConnection.c
-	-rm -f IRC/User.c
 	-rm -f PluginManager.c
 	-rm -f PluginRegistrar.c
 	-rm -f SemesterLeistung_vala.stamp

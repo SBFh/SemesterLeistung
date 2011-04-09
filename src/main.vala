@@ -63,8 +63,8 @@ namespace Daemon
  				null 
 			},
  			{
- 				"console", 
- 				'd', 
+ 				"disable-daemon", 
+ 				'D', 
  				0, 
  				OptionArg.NONE, 
 				ref DisableDaemon,
