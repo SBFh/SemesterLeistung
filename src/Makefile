@@ -39,12 +39,13 @@ subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	Configuration/ConfigurationFile.c \
 	Configuration/ServerConfiguration.c ConnectionHub.c \
-	Data/IDataAccess.c Data/SqliteData.c Events/ChangeNameEvent.c \
-	Events/Event.c Events/MessageEvent.c Events/StatusEvent.c \
-	GlobalLog.c Helpers/DateTimeConverter.c Helpers/ListHelper.c \
-	Helpers/TypeHelper.c IRC/Channel.c IRC/Command.c IRC/Entity.c \
-	IRC/IRCConnection.c PluginManager.c PluginRegistrar.c \
-	SemesterLeistung_vala.stamp main.c
+	Data/IDataAccess.c Data/SqliteData.c EmailSender.c \
+	Events/ChangeNameEvent.c Events/Event.c Events/MessageEvent.c \
+	Events/StatusEvent.c GlobalLog.c Helpers/DateTimeConverter.c \
+	Helpers/ListHelper.c Helpers/TypeHelper.c IRC/Channel.c \
+	IRC/Command.c IRC/Entity.c IRC/IRCConnection.c PluginManager.c \
+	PluginRegistrar.c SemesterLeistung_vala.stamp \
+	SmtpConfiguration.c main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -58,7 +59,8 @@ PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
 am_SemesterLeistung_OBJECTS = main.$(OBJEXT) GlobalLog.$(OBJEXT) \
 	ConnectionHub.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
-	PluginManager.$(OBJEXT) IRCConnection.$(OBJEXT) \
+	PluginManager.$(OBJEXT) EmailSender.$(OBJEXT) \
+	SmtpConfiguration.$(OBJEXT) IRCConnection.$(OBJEXT) \
 	Command.$(OBJEXT) Entity.$(OBJEXT) Channel.$(OBJEXT) \
 	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
 	DateTimeConverter.$(OBJEXT) ListHelper.$(OBJEXT) \
@@ -247,6 +249,8 @@ SemesterLeistung_SOURCES = \
 	ConnectionHub.vala \
 	PluginRegistrar.vala \
 	PluginManager.vala \
+	EmailSender.vala \
+	SmtpConfiguration.vala \
 	IRC/IRCConnection.vala \
 	IRC/Command.vala \
 	IRC/Entity.vala \
@@ -272,8 +276,7 @@ SemesterLeistung_LDFLAGS = \
 	-lsqlite3 \
 	-lgio-2.0 \
 	-lgmodule-2.0 \
-	`xml2-config --libs` \
-	$(NULL)
+	`xml2-config --libs`
 
 SemesterLeistung_VALAFLAGS = \
 	--pkg gio-2.0 \
@@ -382,6 +385,7 @@ include ./$(DEPDIR)/Command.Po
 include ./$(DEPDIR)/ConfigurationFile.Po
 include ./$(DEPDIR)/ConnectionHub.Po
 include ./$(DEPDIR)/DateTimeConverter.Po
+include ./$(DEPDIR)/EmailSender.Po
 include ./$(DEPDIR)/Entity.Po
 include ./$(DEPDIR)/Event.Po
 include ./$(DEPDIR)/GlobalLog.Po
@@ -392,6 +396,7 @@ include ./$(DEPDIR)/MessageEvent.Po
 include ./$(DEPDIR)/PluginManager.Po
 include ./$(DEPDIR)/PluginRegistrar.Po
 include ./$(DEPDIR)/ServerConfiguration.Po
+include ./$(DEPDIR)/SmtpConfiguration.Po
 include ./$(DEPDIR)/SqliteData.Po
 include ./$(DEPDIR)/StatusEvent.Po
 include ./$(DEPDIR)/TypeHelper.Po
@@ -652,6 +657,16 @@ $(srcdir)/PluginManager.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
+$(srcdir)/EmailSender.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
+$(srcdir)/SmtpConfiguration.c: $(srcdir)/SemesterLeistung_vala.stamp
+	@if test -f $@; then :; else \
+	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
+	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
+	fi
 $(srcdir)/IRC/IRCConnection.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
@@ -857,6 +872,7 @@ maintainer-clean-generic:
 	-rm -f ConnectionHub.c
 	-rm -f Data/IDataAccess.c
 	-rm -f Data/SqliteData.c
+	-rm -f EmailSender.c
 	-rm -f Events/ChangeNameEvent.c
 	-rm -f Events/Event.c
 	-rm -f Events/MessageEvent.c
@@ -872,6 +888,7 @@ maintainer-clean-generic:
 	-rm -f PluginManager.c
 	-rm -f PluginRegistrar.c
 	-rm -f SemesterLeistung_vala.stamp
+	-rm -f SmtpConfiguration.c
 	-rm -f main.c
 clean: clean-am
 
@@ -959,6 +976,7 @@ uninstall-am: uninstall-binPROGRAMS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
+	$(NULL)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

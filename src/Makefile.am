@@ -14,6 +14,8 @@ SemesterLeistung_SOURCES = \
 	ConnectionHub.vala \
 	PluginRegistrar.vala \
 	PluginManager.vala \
+	EmailSender.vala \
+	SmtpConfiguration.vala \
 	IRC/IRCConnection.vala \
 	IRC/Command.vala \
 	IRC/Entity.vala \
@@ -39,7 +41,7 @@ SemesterLeistung_LDFLAGS = \
 	-lsqlite3 \
 	-lgio-2.0 \
 	-lgmodule-2.0 \
-	`xml2-config --libs` \
+	`xml2-config --libs`
 	$(NULL)
 	
 SemesterLeistung_VALAFLAGS= \

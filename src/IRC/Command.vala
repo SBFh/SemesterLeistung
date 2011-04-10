@@ -9,7 +9,7 @@ namespace Daemon.IRC
 	
 	public enum Codes
 	{
-		Empty,
+		Invalid = -1,
 		NoSuckNick = 401,
 		NoSuchServer = 402,
 		NoSuchChannel = 403,
@@ -139,13 +139,16 @@ namespace Daemon.IRC
 		public static Codes FromInt(int code) throws CommandError
 		{
 			EnumClass enumClass = (EnumClass)typeof(Codes).class_ref();
-			
-			EnumValue val = enumClass.get_value(code);
-			
-			if (val.value == 0 || val.value_nick != null && val.value_nick.length <= 0)
+
+			foreach (EnumValue current in enumClass.values)
 			{
-				throw new CommandError.Invalid("Code not valid");
+				if (current.value == code)
+				{
+					return (Codes)code;
+				}
 			}
+
+			throw new CommandError.Invalid("Code not valid");
 			
 			return (Codes)code;
 		}
@@ -153,6 +156,7 @@ namespace Daemon.IRC
 	
 	public enum CommandTypes
 	{
+		Invalid,
 		User,
 		Nick,
 		PrivMsg,
@@ -217,14 +221,14 @@ namespace Daemon.IRC
 		public string? Prefix { get; private set; default = null; }
 		public string? Name { get; private set; default = null; }
 		public string[] Parameters { get; private set; }
-		public Codes? Code { get; private set; default = null; }
+		public Codes Code { get; private set; default = Codes.Invalid; }
 		
 		public Entity? Sender { get; private set; default = null; }
 		public Entity? Receiver { get; private set; default = null; }
 		
 		public Entity[] Receivers { get; private set; default = new Entity[0]; }
 	
-		public CommandTypes Type { get; private set; }
+		public CommandTypes Type { get; private set; default = CommandTypes.Invalid; }
 	
 		public Command(CommandTypes type, string[] parameters)
 		{
@@ -300,7 +304,7 @@ namespace Daemon.IRC
 			
 			builder.append("{ \n\t");
 			
-			if (Code != null)
+			if (Code != Codes.Invalid)
 			{
 				builder.append("Code: ");
 				builder.append(Code.ToString());

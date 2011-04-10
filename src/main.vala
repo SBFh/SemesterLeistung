@@ -38,6 +38,8 @@ namespace Daemon
 		public static string? Host = null;
 		
 		public static string? Username = null;
+		
+		public static string? Smtp = null;
 
 		private const OptionEntry[] _options = 
 		{
@@ -83,7 +85,7 @@ namespace Daemon
  				0, 
  				OptionArg.STRING_ARRAY, 
 				ref Servers,
- 				"Specify the Servers and Channels to use. Use format: 'host:(port)/channel,channel,...'", 
+ 				"Specify the Servers and Channels to use. Use format: 'host(:port)/channel{,channel}'", 
  				null 
 			},
  			{
@@ -140,6 +142,15 @@ namespace Daemon
  				"Set the username sent to the IRC Servers.", 
  				null 
 			},
+			{
+				"smtp",
+				's',
+				0,
+				OptionArg.STRING,
+				ref Smtp,
+				"Set the smtp configuration using the format: 'sender/host(:port)'",
+				null
+			},
 			{ null } 
 		}; 
 
@@ -175,7 +186,8 @@ namespace Daemon
 			}
 			else
 			{
-				ConfigFile = ConfigFile ?? Environment.get_current_dir() + "/config.xml";
+
+				ConfigFile = ConfigFile ?? "/etc/daemon/config.xml";
 			
 				File configFile = File.new_for_path(ConfigFile);
 			
@@ -383,6 +395,28 @@ namespace Daemon
 				GlobalLog.ColorMessage(ConsoleColors.Purple, current.ToString());
 			}
 			
+			SmtpConfiguration? smtpConfiguration = null;
+			
+			if (Smtp != null)
+			{
+				smtpConfiguration = SmtpConfiguration.Parse(Smtp);
+			}
+			else if (configuration != null)
+			{
+				smtpConfiguration = configuration.Smtp;
+			}
+			
+			if (smtpConfiguration == null)
+			{
+				GlobalLog.Error("No SMTP configuration set");
+				return 1;
+			}
+			
+			EmailSender.Configuration = smtpConfiguration;
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Using SMTP Configuration:");
+			GlobalLog.ColorMessage(ConsoleColors.Purple, smtpConfiguration.ToString());
+			
 			if (DisableDaemon)
 			{
 				GlobalLog.Warning("Not running as Daemon");
@@ -406,8 +440,16 @@ namespace Daemon
 				GlobalLog.Error("Log Library threw Exception: %s", error.message);
 				return 1;
 			}
+			/*
+			EmailSender sender = new EmailSender();
 			
-			return 0;
+			sender.SendEmail("simon.baumer@web.de", "Hi!", "test!");
+			
+			MainLoop loop = new MainLoop();
+			
+			loop.run();
+			
+			return 0;*/
 			
 			IRCConnection testConnection = new IRCConnection(servers[0]);
 			

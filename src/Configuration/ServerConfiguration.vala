@@ -1,3 +1,5 @@
+using Daemon.Helpers;
+
 namespace Daemon.Configuration
 {
 	public class ServerConfiguration : Object
@@ -31,33 +33,19 @@ namespace Daemon.Configuration
 			
 			string[] channels = parts[1].split(",");
 			
-			string[] hostParts = parts[0].split(":");
+			string host;
+			uint16? port;
 			
-			if (hostParts.length > 2)
+			try
 			{
-				throw new ConfigurationError.Invalid("Invalid Server format");
+				TypeHelper.ParseHostAndPort(parts[0], out host, out port);
+			}
+			catch (DaemonError error)
+			{
+				throw new ConfigurationError.Invalid(error.message);
 			}
 			
-			string host = hostParts[0];
-			uint16 port = 6667;
-			
-			if (hostParts.length == 2)
-			{
-				
-				int inputPort;
-			
-				if ((inputPort = int.parse(hostParts[1])) == 0)
-				{
-					throw new ConfigurationError.Invalid("Could not parse Port");
-				}
-
-				if (inputPort < 0 || inputPort < uint16.MIN || inputPort > uint16.MAX)
-				{
-					throw new ConfigurationError.Invalid("Port out of range");
-				}
-			
-				port = (uint16)inputPort;
-			}
+			port = port ?? 6667;
 
 			return new ServerConfiguration(host, port, channels);
 		}

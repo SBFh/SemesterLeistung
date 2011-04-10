@@ -95,6 +95,10 @@ namespace Daemon.IRC
 		{
 			_sentAuth = false;
 			_sentNick = false;
+		
+			_nickIndex = 0;
+			_nickSuffix = "";
+			
 			_channels = new List<Channel>();
 			
 			_connection = new SocketClient();
@@ -280,19 +284,109 @@ namespace Daemon.IRC
 		bool _sentAuth = false;
 		bool _sentNick = false;
 		
+		int _nickIndex = 0;
+		string _nickSuffix = "";
+		
+		private void SendNickname()
+		{
+			if (_nickIndex >= Nicknames.length)
+			{
+				_nickIndex = 0;
+				_nickSuffix += "_";
+			}
+			
+			QueueCommand(new Command(CommandTypes.Nick, new string[] { Nicknames[_nickIndex] + _nickSuffix }));
+			
+			_nickIndex++;
+		}
+		
+		private void JoinChannel(string name)
+		{
+			QueueCommand(new Command(CommandTypes.Join, new string[] { name }));
+		}
+		
 		private void ReceivedCommand(Command command)
 		{
-			ConsoleColors color = command.Code != null ? ConsoleColors.Purple : ConsoleColors.Blue;
+			ConsoleColors color = command.Code != Codes.Invalid ? ConsoleColors.Purple : ConsoleColors.Blue;
 			GlobalLog.ColorMessage(color, "@%s Received\n%s", ServerConfiguration.Name, command.ToString());
 			
-			/*if (!_sentLogin)
+			if (!_sentAuth)
 			{
-				_sentLogin = true;
-				QueueCommand(new Command(CommandTypes.User, new string[] { "Simon", "localhost", "localhost", "Simon" }));
-				QueueCommand(new Command(CommandTypes.Nick, new string[] { "Simon" }));
-				QueueCommand(new Command(CommandTypes.Join, new string[] { "#main" }));
-			}*/
+				_sentAuth = true;
+				QueueCommand(new Command(CommandTypes.User, new string[] { Username, Hostname, ServerConfiguration.Host, RealName }));
+			}
+			if (!_sentNick)
+			{
+				_sentNick = true;
+				SendNickname();
+			}
 			
+			foreach (string channel in ServerConfiguration.Channels)
+			{
+				if (!InChannel(channel))
+				{
+					JoinChannel(channel);
+				}
+			}
+			
+			ProcessCommand(command);
+		}
+		
+		private bool InChannel(string name, string? user = null)
+		{
+			Channel? channel = GetChannel(name);
+			if (channel == null)
+			{
+				return false;
+			}
+			
+			if (user == null)
+			{
+				return true;
+			}
+			
+			foreach (string current in channel.ActiveUsers)
+			{
+				if (current == user)
+				{
+					return true;
+				}
+			}
+			
+			return false;
+		}
+		
+		private Channel? GetChannel(string name)
+		{
+			foreach (Channel current in Channels)
+			{
+				if (current.Name == name)
+				{
+					return current;
+				}
+			}
+			return null;
+		}
+		
+		private void ProcessCommand(Command command)
+		{
+			switch (command.Type)
+			{
+				
+			}
+		}
+		
+		private void ProcessCode(Command command)
+		{
+			switch (command.Code)
+			{
+				case Codes.NicknameInUse:
+				case Codes.NickCollision:
+				{
+					SendNickname();
+					return;
+				}
+			}
 		}
 	}
 }

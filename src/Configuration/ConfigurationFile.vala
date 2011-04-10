@@ -62,6 +62,38 @@ _root = _document->get_root_element();
 		    Nicknames = helper.CopyList(nicknames);
 			}
 			
+			Xml.Node* smtpNode = GetElement(_root, "smtp");
+			
+			if (smtpNode != null)
+			{
+				string? sender = GetElementValue(smtpNode, "sender");
+				string? host = GetElementValue(smtpNode, "host");
+				string? port = GetElementValue(smtpNode, "port");
+				
+				uint16? actualPort = null;
+				
+				if (host == null || (host = host.strip()).length == 0)
+				{
+					throw new ConfigurationError.Invalid("Host required for SMTP");
+				}
+				
+				if (sender == null || (sender = sender.strip()).length == 0)
+				{
+					throw new ConfigurationError.Invalid("Sender required for SMTP");
+				}
+				
+				if (port != null)
+				{
+					actualPort = TypeHelper.ParsePort(port);
+					if (actualPort == null)
+					{
+						throw new ConfigurationError.Invalid("Could not parse port");
+					}
+				}
+				
+				Smtp = new SmtpConfiguration(sender, host, actualPort);
+			}
+			
 			Xml.Node* serversNode = GetElement(_root, "servers");
 			
 			if (serversNode != null)
@@ -88,20 +120,7 @@ _root = _document->get_root_element();
 						throw new ConfigurationError.Invalid("No hostname defined for server");
 					}
 					
-					uint16 actualPort = 6667;
-					
-					if (port != null)
-					{
-						port = port.strip();
-						int parsedPort = int.parse(port);
-						
-						if (parsedPort == 0 || parsedPort < 0 || parsedPort < uint16.MIN || parsedPort > uint16.MAX)
-						{
-							throw new ConfigurationError.Invalid("Invalid Port");
-						}
-						
-						actualPort = (int16)parsedPort;
-					}
+					uint16 actualPort = TypeHelper.ParsePort(port) ?? 6667;
 					
 					List<string> channels = new List<string>();
 					
@@ -167,6 +186,7 @@ _root = _document->get_root_element();
 		public string? Host { get; private set; }
 		public string? Username { get; private set; }
 		public ServerConfiguration[]? Servers { get; private set; }
+		public SmtpConfiguration? Smtp { get; private set; }
 		
 		private const string _stringFormat = "Disable Daemon: %s\nLog Library: %s\nLog File: %s\nNicknames: %s\nServers:\n%s";
 		
@@ -211,6 +231,13 @@ _root = _document->get_root_element();
 				builder.append(",\n\t");
 				builder.append("Username: ");
 				builder.append(Username);
+			}
+			
+			if (Smtp != null)
+			{
+				builder.append(",\n\t");
+				builder.append("Smtp Configuration:\n");
+				builder.append(TypeHelper.IndentString(Smtp.ToString(), 1));
 			}
 			
 			if (Nicknames != null && Nicknames.length > 0)
