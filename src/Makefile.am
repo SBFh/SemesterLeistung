@@ -19,7 +19,6 @@ SemesterLeistung_SOURCES = \
 	IRC/IRCConnection.vala \
 	IRC/Command.vala \
 	IRC/Entity.vala \
-	IRC/Channel.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \

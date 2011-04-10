@@ -24,4 +24,13 @@ namespace Daemon.Data
 		public abstract List<LogEvent> GetLog(string channel, string server) throws DataAccessError;
 		public abstract void Init(string? logPath) throws DataAccessError;
 	}
+	
+	public static class IRCLog : Object
+	{
+		public static void Log(LogEvent event)
+		{
+			GlobalLog.Message(event.ToString());
+			PluginManager.DataAccess.Log(event);
+		}
+	}
 }

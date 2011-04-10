@@ -42,8 +42,8 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	Data/IDataAccess.c Data/SqliteData.c EmailSender.c \
 	Events/ChangeNameEvent.c Events/Event.c Events/MessageEvent.c \
 	Events/StatusEvent.c GlobalLog.c Helpers/DateTimeConverter.c \
-	Helpers/ListHelper.c Helpers/TypeHelper.c IRC/Channel.c \
-	IRC/Command.c IRC/Entity.c IRC/IRCConnection.c PluginManager.c \
+	Helpers/ListHelper.c Helpers/TypeHelper.c IRC/Command.c \
+	IRC/Entity.c IRC/IRCConnection.c PluginManager.c \
 	PluginRegistrar.c SemesterLeistung_vala.stamp \
 	SmtpConfiguration.c main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -61,13 +61,12 @@ am_SemesterLeistung_OBJECTS = main.$(OBJEXT) GlobalLog.$(OBJEXT) \
 	ConnectionHub.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
 	PluginManager.$(OBJEXT) EmailSender.$(OBJEXT) \
 	SmtpConfiguration.$(OBJEXT) IRCConnection.$(OBJEXT) \
-	Command.$(OBJEXT) Entity.$(OBJEXT) Channel.$(OBJEXT) \
-	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
-	DateTimeConverter.$(OBJEXT) ListHelper.$(OBJEXT) \
-	TypeHelper.$(OBJEXT) Event.$(OBJEXT) StatusEvent.$(OBJEXT) \
-	ChangeNameEvent.$(OBJEXT) MessageEvent.$(OBJEXT) \
-	ServerConfiguration.$(OBJEXT) ConfigurationFile.$(OBJEXT) \
-	$(am__objects_1)
+	Command.$(OBJEXT) Entity.$(OBJEXT) IDataAccess.$(OBJEXT) \
+	SqliteData.$(OBJEXT) DateTimeConverter.$(OBJEXT) \
+	ListHelper.$(OBJEXT) TypeHelper.$(OBJEXT) Event.$(OBJEXT) \
+	StatusEvent.$(OBJEXT) ChangeNameEvent.$(OBJEXT) \
+	MessageEvent.$(OBJEXT) ServerConfiguration.$(OBJEXT) \
+	ConfigurationFile.$(OBJEXT) $(am__objects_1)
 SemesterLeistung_OBJECTS = $(am_SemesterLeistung_OBJECTS)
 am__DEPENDENCIES_1 =
 SemesterLeistung_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -254,7 +253,6 @@ SemesterLeistung_SOURCES = \
 	IRC/IRCConnection.vala \
 	IRC/Command.vala \
 	IRC/Entity.vala \
-	IRC/Channel.vala \
 	Data/IDataAccess.vala \
 	Data/SqliteData.vala \
 	Helpers/DateTimeConverter.vala \
@@ -380,7 +378,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 include ./$(DEPDIR)/ChangeNameEvent.Po
-include ./$(DEPDIR)/Channel.Po
 include ./$(DEPDIR)/Command.Po
 include ./$(DEPDIR)/ConfigurationFile.Po
 include ./$(DEPDIR)/ConnectionHub.Po
@@ -464,20 +461,6 @@ Entity.obj: IRC/Entity.c
 #	source='IRC/Entity.c' object='Entity.obj' libtool=no \
 #	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
 #	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Entity.obj `if test -f 'IRC/Entity.c'; then $(CYGPATH_W) 'IRC/Entity.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Entity.c'; fi`
-
-Channel.o: IRC/Channel.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Channel.o -MD -MP -MF $(DEPDIR)/Channel.Tpo -c -o Channel.o `test -f 'IRC/Channel.c' || echo '$(srcdir)/'`IRC/Channel.c
-	$(am__mv) $(DEPDIR)/Channel.Tpo $(DEPDIR)/Channel.Po
-#	source='IRC/Channel.c' object='Channel.o' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Channel.o `test -f 'IRC/Channel.c' || echo '$(srcdir)/'`IRC/Channel.c
-
-Channel.obj: IRC/Channel.c
-	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT Channel.obj -MD -MP -MF $(DEPDIR)/Channel.Tpo -c -o Channel.obj `if test -f 'IRC/Channel.c'; then $(CYGPATH_W) 'IRC/Channel.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Channel.c'; fi`
-	$(am__mv) $(DEPDIR)/Channel.Tpo $(DEPDIR)/Channel.Po
-#	source='IRC/Channel.c' object='Channel.obj' libtool=no \
-#	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) \
-#	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o Channel.obj `if test -f 'IRC/Channel.c'; then $(CYGPATH_W) 'IRC/Channel.c'; else $(CYGPATH_W) '$(srcdir)/IRC/Channel.c'; fi`
 
 IDataAccess.o: Data/IDataAccess.c
 	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT IDataAccess.o -MD -MP -MF $(DEPDIR)/IDataAccess.Tpo -c -o IDataAccess.o `test -f 'Data/IDataAccess.c' || echo '$(srcdir)/'`Data/IDataAccess.c
@@ -682,11 +665,6 @@ $(srcdir)/IRC/Entity.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
-$(srcdir)/IRC/Channel.c: $(srcdir)/SemesterLeistung_vala.stamp
-	@if test -f $@; then :; else \
-	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
-	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
-	fi
 $(srcdir)/Data/IDataAccess.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
@@ -881,7 +859,6 @@ maintainer-clean-generic:
 	-rm -f Helpers/DateTimeConverter.c
 	-rm -f Helpers/ListHelper.c
 	-rm -f Helpers/TypeHelper.c
-	-rm -f IRC/Channel.c
 	-rm -f IRC/Command.c
 	-rm -f IRC/Entity.c
 	-rm -f IRC/IRCConnection.c

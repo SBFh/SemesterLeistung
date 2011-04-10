@@ -1,4 +1,6 @@
 using Daemon.Configuration;
+using Daemon.Data;
+using Daemon.Events;
 
 namespace Daemon.IRC
 {
@@ -36,7 +38,9 @@ namespace Daemon.IRC
 		
 		private IOChannel _channel;
 		
-		private List<Channel> _channels = new List<Channel>();
+		private List<string> _channels = new List<string>();
+		
+		private List<string> _pendingChannels = new List<string>();
 		
 		private string _nickname;
 	
@@ -93,13 +97,16 @@ namespace Daemon.IRC
 		
 		private void Connect()
 		{
-			_sentAuth = false;
-			_sentNick = false;
+			_authComplete = false;
 		
 			_nickIndex = 0;
 			_nickSuffix = "";
 			
-			_channels = new List<Channel>();
+			_currentNick = null;
+			_lastNick = null;
+			
+			_channels = new List<string>();
+			_pendingChannels = new List<string>();
 			
 			_connection = new SocketClient();
 			_connection.set_protocol(SocketProtocol.TCP);
@@ -161,6 +168,8 @@ namespace Daemon.IRC
 		private void Connected()
 		{
 			GlobalLog.ColorMessage(ConsoleColors.Green, "Successfully connected to Server: %s", ServerConfiguration.Name);
+			SendNickname();
+			Auth();
 		}
 		
 		private void Disconnected()
@@ -281,11 +290,13 @@ namespace Daemon.IRC
 			return true;
 		}
 		
-		bool _sentAuth = false;
-		bool _sentNick = false;
-		
 		int _nickIndex = 0;
 		string _nickSuffix = "";
+		string? _lastNick = null;
+		
+		string? _currentNick = null;
+		
+		bool _authComplete = false;
 		
 		private void SendNickname()
 		{
@@ -295,14 +306,33 @@ namespace Daemon.IRC
 				_nickSuffix += "_";
 			}
 			
-			QueueCommand(new Command(CommandTypes.Nick, new string[] { Nicknames[_nickIndex] + _nickSuffix }));
+			_lastNick = Nicknames[_nickIndex] + _nickSuffix;
+			
+			QueueCommand(new Command(CommandTypes.Nick, new string[] { _lastNick }));
 			
 			_nickIndex++;
 		}
 		
+		private void Auth()
+		{
+			QueueCommand(new Command(CommandTypes.User, new string[] { Username, Hostname, ServerConfiguration.Host, RealName }));
+		}
+		
 		private void JoinChannel(string name)
 		{
+			_pendingChannels.append(name);
 			QueueCommand(new Command(CommandTypes.Join, new string[] { name }));
+		}
+		
+		private void SendMessage(string target, string message)
+		{
+			string[] messageLines = message.split("\n");
+			
+			foreach (string current in messageLines)
+			{
+				QueueCommand(new Command(CommandTypes.PrivMsg, new string[] { target, current }));			
+			}
+
 		}
 		
 		private void ReceivedCommand(Command command)
@@ -310,69 +340,104 @@ namespace Daemon.IRC
 			ConsoleColors color = command.Code != Codes.Invalid ? ConsoleColors.Purple : ConsoleColors.Blue;
 			GlobalLog.ColorMessage(color, "@%s Received\n%s", ServerConfiguration.Name, command.ToString());
 			
-			if (!_sentAuth)
-			{
-				_sentAuth = true;
-				QueueCommand(new Command(CommandTypes.User, new string[] { Username, Hostname, ServerConfiguration.Host, RealName }));
-			}
-			if (!_sentNick)
-			{
-				_sentNick = true;
-				SendNickname();
-			}
+			ProcessCommand(command);
+			ProcessCode(command);
 			
-			foreach (string channel in ServerConfiguration.Channels)
+			if (_authComplete && _currentNick != null)
 			{
-				if (!InChannel(channel))
+				foreach (string channel in ServerConfiguration.Channels)
 				{
-					JoinChannel(channel);
+					if (!InChannel(channel) && !IsChannelPending(channel))
+					{
+						JoinChannel(channel);
+					}
 				}
 			}
-			
-			ProcessCommand(command);
 		}
 		
-		private bool InChannel(string name, string? user = null)
+		private bool InChannel(string name)
 		{
-			Channel? channel = GetChannel(name);
-			if (channel == null)
+			foreach (string current in _channels)
 			{
-				return false;
-			}
-			
-			if (user == null)
-			{
-				return true;
-			}
-			
-			foreach (string current in channel.ActiveUsers)
-			{
-				if (current == user)
+				if (current == name)
 				{
 					return true;
 				}
 			}
-			
 			return false;
 		}
 		
-		private Channel? GetChannel(string name)
+		private bool IsChannelPending(string name)
 		{
-			foreach (Channel current in Channels)
+			foreach (string current in _pendingChannels)
 			{
-				if (current.Name == name)
+				if (current == name)
 				{
-					return current;
+					return true;
 				}
 			}
-			return null;
+			return false;
 		}
 		
 		private void ProcessCommand(Command command)
 		{
 			switch (command.Type)
 			{
-				
+				case CommandTypes.PrivMsg:
+				{
+					foreach (Entity receiver in command.Receivers)
+					{
+						if (receiver.Name == _currentNick)
+						{
+							ProcessMessage(command.Sender, command.Parameters[1]);
+						}
+						else
+						{
+							if (InChannel(receiver.Name))
+							{
+								IRCLog.Log(new MessageEvent(command.Sender.Name, command.Parameters[1], receiver.Name, ServerConfiguration.Name));
+							}
+						}
+					}
+					break;
+				}
+				case CommandTypes.Nick:
+				{
+					if (command.Sender.Name == _currentNick)
+					{
+						break;
+					}
+					else
+					{
+						IRCLog.Log(new ChangeNameEvent(command.Sender.Name, command.Receiver.Name, "!global", ServerConfiguration.Name));
+					}
+					break;
+				}
+				case CommandTypes.Join:
+				{
+					if (command.Sender.Name == _currentNick)
+					{
+						_channels.append(command.Parameters[0]);
+						_pendingChannels.remove(command.Parameters[0]);
+					}
+					else
+					{
+						IRCLog.Log(new StatusEvent(command.Sender.Name, StatusChange.Join, command.Parameters[0], ServerConfiguration.Name));
+					}
+					break;
+				}
+				case CommandTypes.Part:
+				{
+					if (command.Sender.Name == _currentNick)
+					{
+						_channels.remove(command.Parameters[0]);
+					}
+					else
+					{
+						IRCLog.Log(new StatusEvent(command.Sender.Name, StatusChange.Leave, command.Parameters[1], ServerConfiguration.Name));
+					}
+					break;
+				}
 			}
 		}
 		
@@ -386,7 +451,29 @@ namespace Daemon.IRC
 					SendNickname();
 					return;
 				}
+				case Codes.LUserClient:
+				{
+					_currentNick = command.Parameters[0];
+					_authComplete = true;
+					break;
+				}
 			}
+		}
+		
+		private void ProcessMessage(Entity sender, string message)
+		{
+			NotUnderstood(sender);
+		}
+		
+		private const string _helpString =
+		"""This bot can only understand the following Commands:
+		LASTSEEN <USERNAME>
+		SENDLOG <CHANNEL> <EMAIL>
+		""";
+		
+		private void NotUnderstood(Entity sender)
+		{
+			SendMessage(sender.Name, _helpString);
 		}
 	}
 }

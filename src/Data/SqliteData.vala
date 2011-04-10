@@ -44,7 +44,6 @@ namespace Daemon.Data
 			{
 				LogMessageEvent((MessageEvent)event);
 			}
-			stdout.printf(event.ToString() + "\n");
 		}
 		
 		private void LogStatusEvent(StatusEvent event) throws DataAccessError
