@@ -495,7 +495,7 @@ namespace Daemon.IRC
 		
 		private void SendUnavailable(Entity receiver)
 		{
-			
+			SendMessage(receiver, "Currently unavailable, try again in a few minutes");
 		}
 		
 		private void ProcessMessage(Entity sender, string message)
