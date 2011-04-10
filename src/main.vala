@@ -6,15 +6,8 @@ using Daemon.Helpers;
 
 namespace Daemon
 {
-	public class Main : Object {
-		public Main () {
-		}
-
-		public void run ()
-		{
-			
-		}
-		
+	public class Main : Object
+	{
 		public static string? LogLibrary = null;
 
 		public static string? LogFile = null;
@@ -447,26 +440,36 @@ namespace Daemon
 				GlobalLog.Error("Log Library threw Exception: %s", error.message);
 				return 1;
 			}
-			/*
-			EmailSender sender = new EmailSender();
 			
-			sender.SendEmail("simon.baumer@web.de", "Hi!", "test!");
+			if (!DisableDaemon)
+			{
+				if (fork() != 0)
+				{
+					return 0;
+				}
+			}
 			
-			MainLoop loop = new MainLoop();
+			IRCConnection[] connections = new IRCConnection[servers.length];
 			
-			loop.run();
+			for (int i = 0; i < servers.length; i++)
+			{
+				try
+				{
+					connections[i] = new IRCConnection(servers[i]);
+				}
+				catch (IRCError error)
+				{
+					GlobalLog.Error(error.message);
+					return 1;
+				}
+			}
 			
-			return 0;*/
-			
-			IRCConnection testConnection = new IRCConnection(servers[0]);
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Application initialized");
 			
 			MainLoop loop = new MainLoop();
 			
 			loop.run();
 
-			return 0;
-			var main = new Main ();
-			main.run ();
 			return 0;
 		}
 

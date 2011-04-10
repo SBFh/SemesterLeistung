@@ -384,6 +384,11 @@ namespace Daemon.IRC
 		{
 			switch (command.Type)
 			{
+				case CommandTypes.Ping:
+				{
+					QueueCommand(new Command(CommandTypes.Pong, new string[0]));
+					break;
+				}
 				case CommandTypes.PrivMsg:
 				{
 					foreach (Entity receiver in command.Receivers)

@@ -274,13 +274,16 @@ SemesterLeistung_LDFLAGS = \
 	-lsqlite3 \
 	-lgio-2.0 \
 	-lgmodule-2.0 \
-	`xml2-config --libs`
+	`xml2-config --libs` \
+	-ldaemon \
+	$(NULL)
 
 SemesterLeistung_VALAFLAGS = \
 	--pkg gio-2.0 \
 	--pkg sqlite3 \
 	--pkg gmodule-2.0 \
 	--pkg libxml-2.0 \
+	--pkg libdaemon \
 	--thread \
 	$(NULL)
 
@@ -953,7 +956,6 @@ uninstall-am: uninstall-binPROGRAMS
 	pdf pdf-am ps ps-am tags uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
-	$(NULL)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

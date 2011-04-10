@@ -40,7 +40,8 @@ SemesterLeistung_LDFLAGS = \
 	-lsqlite3 \
 	-lgio-2.0 \
 	-lgmodule-2.0 \
-	`xml2-config --libs`
+	`xml2-config --libs` \
+	-ldaemon \
 	$(NULL)
 	
 SemesterLeistung_VALAFLAGS= \
@@ -48,6 +49,7 @@ SemesterLeistung_VALAFLAGS= \
 	--pkg sqlite3 \
 	--pkg gmodule-2.0 \
 	--pkg libxml-2.0 \
+	--pkg libdaemon \
 	--thread \
 	$(NULL)
 
