@@ -41,8 +41,6 @@ namespace Daemon.IRC
 		private List<string> _channels = new List<string>();
 		
 		private List<string> _pendingChannels = new List<string>();
-		
-		private string _nickname;
 	
 		public IRCConnection(ServerConfiguration configuration) throws IRCError
 		{
@@ -324,13 +322,16 @@ namespace Daemon.IRC
 			QueueCommand(new Command(CommandTypes.Join, new string[] { name }));
 		}
 		
-		private void SendMessage(string target, string message)
+		[PrintfFormat]
+		private void SendMessage(Entity target, string format, ...)
 		{
+			string message = format.vprintf(va_list());
+			
 			string[] messageLines = message.split("\n");
 			
 			foreach (string current in messageLines)
 			{
-				QueueCommand(new Command(CommandTypes.PrivMsg, new string[] { target, current }));			
+				QueueCommand(new Command(CommandTypes.PrivMsg, new string[] { target.Name, current }));			
 			}
 
 		}
@@ -395,7 +396,15 @@ namespace Daemon.IRC
 						{
 							if (InChannel(receiver.Name))
 							{
-								IRCLog.Log(new MessageEvent(command.Sender.Name, command.Parameters[1], receiver.Name, ServerConfiguration.Name));
+								try
+								{
+									IRCLog.Log(new MessageEvent(command.Sender.Name, command.Parameters[1], receiver.Name, ServerConfiguration.Name));
+								}
+								catch (DataAccessError error)
+								{
+									GlobalLog.Error(error.message);
+									break;
+								}
 							}
 						}
 					}
@@ -409,7 +418,15 @@ namespace Daemon.IRC
 					}
 					else
 					{
-						IRCLog.Log(new ChangeNameEvent(command.Sender.Name, command.Receiver.Name, "!global", ServerConfiguration.Name));
+						try
+						{
+							IRCLog.Log(new ChangeNameEvent(command.Sender.Name, command.Receiver.Name, "!global", ServerConfiguration.Name));
+						}
+						catch (DataAccessError error)
+						{
+							GlobalLog.Error(error.message);
+							break;
+						}
 					}
 					break;
 				}
@@ -422,7 +439,15 @@ namespace Daemon.IRC
 					}
 					else
 					{
-						IRCLog.Log(new StatusEvent(command.Sender.Name, StatusChange.Join, command.Parameters[0], ServerConfiguration.Name));
+						try
+						{
+							IRCLog.Log(new StatusEvent(command.Sender.Name, StatusChange.Join, command.Parameters[0], ServerConfiguration.Name));
+						}
+						catch (DataAccessError error)
+						{
+							GlobalLog.Error(error.message);
+							break;
+						}
 					}
 					break;
 				}
@@ -434,7 +459,15 @@ namespace Daemon.IRC
 					}
 					else
 					{
-						IRCLog.Log(new StatusEvent(command.Sender.Name, StatusChange.Leave, command.Parameters[1], ServerConfiguration.Name));
+						try
+						{
+							IRCLog.Log(new StatusEvent(command.Sender.Name, StatusChange.Leave, command.Parameters[1], ServerConfiguration.Name));
+						}
+						catch (DataAccessError error)
+						{
+							GlobalLog.Error(error.message);
+							break;
+						}
 					}
 					break;
 				}
@@ -460,20 +493,114 @@ namespace Daemon.IRC
 			}
 		}
 		
+		private void SendUnavailable(Entity receiver)
+		{
+			
+		}
+		
 		private void ProcessMessage(Entity sender, string message)
 		{
-			NotUnderstood(sender);
+			string[] parts = message.split(" ");
+			
+			switch(parts[0])
+			{
+				case "LASTSEEN":
+				{
+					string otherUser = "";
+					string channel = "";
+					if (parts.length != 3 || (channel = parts[1].strip()).length == 0 || (otherUser = parts[2].strip()).length == 0)
+					{
+						SendMessage(sender, "LASTSEEN requires exactly two parameter: The Channels and the Users name");
+						break;
+					}
+					
+					DateTime? lastSeen;
+					
+					try
+					{
+						lastSeen = PluginManager.DataAccess.UserLastSeen(otherUser, channel, ServerConfiguration.Name);
+					}
+					catch (DataAccessError error)
+					{
+						SendUnavailable(sender);
+						break;
+					}
+					
+					if (lastSeen == null)
+					{
+						SendMessage(sender, "I have never seen User %s on Channel %s", otherUser, channel);
+						break;
+					}
+					
+					SendMessage(sender, "The last time user %s did something on Channel %s was at %s", otherUser, lastSeen.format("%x %X"), channel);
+					
+					break;
+				}
+				case "SENDLOG":
+				{
+					string channel = "";
+					string email = "";
+					if (parts.length != 3 || (channel = parts[1].strip()).length == 0 || (email = parts[2].strip()).length == 0)
+					{
+						SendMessage(sender, "SENDLOG requires exactly two parameter: The Channels name and a E-Mail address");
+						break;
+					}
+					
+					List<LogEvent> log = new List<LogEvent>();
+					
+					try
+					{
+						log = PluginManager.DataAccess.GetLog(channel, ServerConfiguration.Name);
+					}
+					catch (DataAccessError error)
+					{
+						SendUnavailable(sender);
+					}
+					
+					StringBuilder builder = new StringBuilder();
+					
+					builder.append("Starting log for channel %s on server %s\n\n".printf(channel, ServerConfiguration.Name));
+					
+					foreach (LogEvent current in log)
+					{
+						builder.append(current.ToString());
+						builder.append("\n");
+					}
+					
+					builder.append("\nEND OF LOG");
+					
+					EmailSender emailSender = new EmailSender();
+					
+					try
+					{
+						emailSender.SendEmail(email, "Log for channel %s".printf(channel), builder.str);
+					}
+					catch (EmailError error)
+					{
+						SendMessage(sender, "Could not send E-Mail to %s, might be a wrong address?", email);
+						break;
+					}
+					
+					SendMessage(sender, "Great success!");
+					
+					break;
+				}
+				default:
+				{
+					NotUnderstood(sender);
+					break;
+				}
+			}
 		}
 		
 		private const string _helpString =
 		"""This bot can only understand the following Commands:
-		LASTSEEN <USERNAME>
-		SENDLOG <CHANNEL> <EMAIL>
-		""";
+		LASTSEEN <CHANNEL> <USERNAME>
+		SENDLOG <CHANNEL> <EMAIL>""";
 		
 		private void NotUnderstood(Entity sender)
 		{
-			SendMessage(sender.Name, _helpString);
+			SendMessage(sender, _helpString);
 		}
 	}
 }

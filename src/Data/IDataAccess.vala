@@ -27,7 +27,7 @@ namespace Daemon.Data
 	
 	public static class IRCLog : Object
 	{
-		public static void Log(LogEvent event)
+		public static void Log(LogEvent event) throws DataAccessError
 		{
 			GlobalLog.Message(event.ToString());
 			PluginManager.DataAccess.Log(event);

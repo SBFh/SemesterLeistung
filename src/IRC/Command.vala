@@ -149,8 +149,6 @@ namespace Daemon.IRC
 			}
 
 			throw new CommandError.Invalid("Code not valid");
-			
-			return (Codes)code;
 		}
 	}
 	

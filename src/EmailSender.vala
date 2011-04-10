@@ -3,8 +3,6 @@ namespace Daemon
 	public errordomain EmailError
 	{
 		ServerFailed,
-		InvalidEmail,
-		Critical,
 		DNSError
 	}
 
@@ -18,7 +16,6 @@ namespace Daemon
 	
 		public void SendEmail(string receiver, string subject, string body) throws EmailError
 		{
-			SocketClient client = new SocketClient();
 			Resolver resolver = Resolver.get_default();
 			
 			List<InetAddress> addresses;
@@ -42,44 +39,57 @@ namespace Daemon
 			InetSocketAddress endpoint = new InetSocketAddress(address, Configuration.Port);
 			
 			_connection = new SocketClient();
-			_socket = _connection.connect(endpoint);
-			_inputStream = new DataInputStream(_socket.input_stream);
 			
-			string localAddress = ((InetSocketAddress)_socket.get_local_address()).get_address().to_string();
+			string localAddress;
 			
-			Read();
-			Write("HELO " + localAddress + "\r\n");
-			Read();
-			Write("MAIL FROM: ");
-			Write(Configuration.Sender);
-			Write("\r\n");
-			Read();
-			Write("VRFY ");
-			Write(Configuration.Sender);
-			Write("\r\n");
-			Read();
-			Write("RCPT TO: ");
-			Write(receiver);
-			Write("\r\n");
-			Read();
-			Write("DATA\r\n");
-			Write("Subject: ");
-			Write(subject + "\r\n");
-			Read();
-			Write(body + "\r\n");
-			Write(".\r\n");
-			Read(); 
-			Write("QUIT\r\n");
-			Read();
+			try
+			{
+				_socket = _connection.connect(endpoint);
+				_inputStream = new DataInputStream(_socket.input_stream);
+			
+				localAddress = ((InetSocketAddress)_socket.get_local_address()).get_address().to_string();
+
+				Read();
+				Write("HELO " + localAddress + "\r\n");
+				Read();
+				Write("MAIL FROM: ");
+				Write(Configuration.Sender);
+				Write("\r\n");
+				Read();
+				Write("VRFY ");
+				Write(Configuration.Sender);
+				Write("\r\n");
+				Read();
+				Write("RCPT TO: ");
+				Write(receiver);
+				Write("\r\n");
+				Read();
+				Write("DATA\r\n");
+				Write("Subject: ");
+				Write(subject + "\r\n");
+				Read();
+				Write(body + "\r\n");
+				Write(".\r\n");
+				Read(); 
+				Write("QUIT\r\n");
+				Read();
+			}
+			catch (Error error)
+			{
+				throw new EmailError.ServerFailed(error.message);
+			}
+			
+			GlobalLog.ColorMessage(ConsoleColors.Green, "Successfully sent E-Mail with subject '%s' to '%s', body:", subject, receiver);
+			GlobalLog.ColorMessage(ConsoleColors.Cyan, body);
 		}
 		
-		private void Read()
+		private void Read() throws IOError
 		{
 			size_t size;
-			string read = _inputStream.read_line(out size);
+			_inputStream.read_line(out size);
 		}
 		
-		private void Write(string text)
+		private void Write(string text) throws IOError
 		{
 			_socket.output_stream.write(text.data, null);
 		}

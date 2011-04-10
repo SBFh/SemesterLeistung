@@ -399,7 +399,14 @@ namespace Daemon
 			
 			if (Smtp != null)
 			{
-				smtpConfiguration = SmtpConfiguration.Parse(Smtp);
+				try
+				{
+					smtpConfiguration = SmtpConfiguration.Parse(Smtp);
+				}
+				catch (SmtpError error)
+				{
+					GlobalLog.Error("Could not parse SMTP Configuration: %s", error.message);
+				}
 			}
 			else if (configuration != null)
 			{
