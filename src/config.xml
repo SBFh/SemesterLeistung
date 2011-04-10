@@ -3,10 +3,16 @@
 	<disable-daemon>true</disable-daemon>
 	<log-file>/home/simon/data.db</log-file>
 	<realname>somebot</realname>
+	<username>somebot</username>
 	<nicknames>
 		<nickname>irc-bot</nickname>
 		<nickname>irc-bot2</nickname>
 	</nicknames>
+	<smtp>
+		<host>localhost</host>
+		<port>25</port>
+		<sender>simon.baumer@web.de</sender>
+	</smtp>
 	<servers>
 		<server>
 			<host>localhost</host>

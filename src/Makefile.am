@@ -11,7 +11,6 @@ bin_PROGRAMS = SemesterLeistung
 SemesterLeistung_SOURCES = \
 	main.vala \
 	GlobalLog.vala \
-	ConnectionHub.vala \
 	PluginRegistrar.vala \
 	PluginManager.vala \
 	EmailSender.vala \
