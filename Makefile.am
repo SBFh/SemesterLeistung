@@ -30,4 +30,8 @@ DISTCLEANFILES = \
 	intltool-update \
 	po/.intltool-merge-cache \
 	$(NULL)
+	
+dist_man_MANS = \
+	man/SemesterLeistung.1 \
+	$(NULL)
 
