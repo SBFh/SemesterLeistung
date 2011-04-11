@@ -537,7 +537,7 @@ namespace Daemon.IRC
 						break;
 					}
 					
-					SendMessage(sender, "The last time user %s did something on Channel %s was at %s", otherUser, lastSeen.format("%x %X"), channel);
+					SendMessage(sender, "The last time user %s did something on Channel %s was at %s", otherUser, channel, lastSeen.format("%x %X"));
 					
 					break;
 				}

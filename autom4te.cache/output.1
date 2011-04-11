@@ -12064,7 +12064,10 @@ fi
 
 
 
-GLIB_REQUIRED=2.12.0
+GLIB_REQUIRED=2.26.0
+SQLITE_REQUIRED=3.6.23.1
+LIBXML_REQUIRED=2.7.7
+LIBDAEMON_REQUIRED=0.14
 
 
 
@@ -12194,12 +12197,33 @@ if test -n "$SEMESTERLEISTUNG_CFLAGS"; then
     pkg_cv_SEMESTERLEISTUNG_CFLAGS="$SEMESTERLEISTUNG_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= \$GLIB_REQUIRED gobject-2.0 >= \$GLIB_REQUIRED\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= \$GLIB_REQUIRED
+	gobject-2.0 >= \$GLIB_REQUIRED
+	gio-2.0 >= \$GLIB_REQUIRED
+	sqlite3 >= \$SQLITE_REQUIRED
+	gmodule-2.0 >= \$GLIB_REQUIRED
+	libxml-2.0 >= \$LIBXML_REQUIRED
+	libdaemon >= \$LIBDAEMON_REQUIRED
+	\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_SEMESTERLEISTUNG_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED" 2>/dev/null`
+  pkg_cv_SEMESTERLEISTUNG_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -12210,12 +12234,33 @@ if test -n "$SEMESTERLEISTUNG_LIBS"; then
     pkg_cv_SEMESTERLEISTUNG_LIBS="$SEMESTERLEISTUNG_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= \$GLIB_REQUIRED gobject-2.0 >= \$GLIB_REQUIRED\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= \$GLIB_REQUIRED
+	gobject-2.0 >= \$GLIB_REQUIRED
+	gio-2.0 >= \$GLIB_REQUIRED
+	sqlite3 >= \$SQLITE_REQUIRED
+	gmodule-2.0 >= \$GLIB_REQUIRED
+	libxml-2.0 >= \$LIBXML_REQUIRED
+	libdaemon >= \$LIBDAEMON_REQUIRED
+	\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_SEMESTERLEISTUNG_LIBS=`$PKG_CONFIG --libs "glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED" 2>/dev/null`
+  pkg_cv_SEMESTERLEISTUNG_LIBS=`$PKG_CONFIG --libs "glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	" 2>/dev/null`
 else
   pkg_failed=yes
 fi
@@ -12235,14 +12280,35 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        SEMESTERLEISTUNG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED" 2>&1`
+	        SEMESTERLEISTUNG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	" 2>&1`
         else 
-	        SEMESTERLEISTUNG_PKG_ERRORS=`$PKG_CONFIG --print-errors "glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED" 2>&1`
+	        SEMESTERLEISTUNG_PKG_ERRORS=`$PKG_CONFIG --print-errors "glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$SEMESTERLEISTUNG_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (glib-2.0 >= $GLIB_REQUIRED gobject-2.0 >= $GLIB_REQUIRED) were not met:
+	as_fn_error $? "Package requirements (glib-2.0 >= $GLIB_REQUIRED
+	gobject-2.0 >= $GLIB_REQUIRED
+	gio-2.0 >= $GLIB_REQUIRED
+	sqlite3 >= $SQLITE_REQUIRED
+	gmodule-2.0 >= $GLIB_REQUIRED
+	libxml-2.0 >= $LIBXML_REQUIRED
+	libdaemon >= $LIBDAEMON_REQUIRED
+	) were not met:
 
 $SEMESTERLEISTUNG_PKG_ERRORS
 

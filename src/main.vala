@@ -152,7 +152,6 @@ namespace Daemon
 			try
 			{
 				OptionContext context = new OptionContext("");
-
 				context.set_help_enabled(true);
 				context.add_main_entries(_options, null);
 				context.parse(ref args);

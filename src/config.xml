@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<disable-daemon>true</disable-daemon>
-	<log-file>/home/simon/data.db</log-file>
-	<realname>somebot</realname>
-	<username>somebot</username>
+	<log-file>/home/user/data.db</log-file>
+	<log-library>/home/user/library.so</log-library>
+	<realname>SomeBot</realname>
+	<username>SomeBot</username>
+	<hostname>localhost</hostname>
 	<nicknames>
 		<nickname>irc-bot</nickname>
 		<nickname>irc-bot2</nickname>
@@ -11,11 +13,19 @@
 	<smtp>
 		<host>localhost</host>
 		<port>25</port>
-		<sender>simon.baumer@web.de</sender>
+		<sender>bot@bot.com</sender>
 	</smtp>
 	<servers>
 		<server>
 			<host>localhost</host>
+			<port>6667</port>
+			<channels>
+				<channel>#main</channel>
+				<channel>#other</channel>
+			</channels>
+		</server>
+		<server>
+			<host>google.com</host>
 			<port>6667</port>
 			<channels>
 				<channel>#main</channel>

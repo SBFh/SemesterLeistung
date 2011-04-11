@@ -1,0 +1,13 @@
+An IRC-Bot Daemon. Logs basic information on one or multiple IRC Networks. Can send logs via E-Mail.
+
+Requirements
+============
+	
+	-gobject-2.0
+	-gthread-2.0
+	-glib-2.0
+	-libdaemon
+	-libxml-2.0
+	-gmodule-2.0
+	-sqlite3
+	-gio-2.0

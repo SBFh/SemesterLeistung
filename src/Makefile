@@ -38,14 +38,13 @@ bin_PROGRAMS = SemesterLeistung$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	Configuration/ConfigurationFile.c \
-	Configuration/ServerConfiguration.c ConnectionHub.c \
-	Data/IDataAccess.c Data/SqliteData.c EmailSender.c \
-	Events/ChangeNameEvent.c Events/Event.c Events/MessageEvent.c \
-	Events/StatusEvent.c GlobalLog.c Helpers/DateTimeConverter.c \
-	Helpers/ListHelper.c Helpers/TypeHelper.c IRC/Command.c \
-	IRC/Entity.c IRC/IRCConnection.c PluginManager.c \
-	PluginRegistrar.c SemesterLeistung_vala.stamp \
-	SmtpConfiguration.c main.c
+	Configuration/ServerConfiguration.c Data/IDataAccess.c \
+	Data/SqliteData.c EmailSender.c Events/ChangeNameEvent.c \
+	Events/Event.c Events/MessageEvent.c Events/StatusEvent.c \
+	GlobalLog.c Helpers/DateTimeConverter.c Helpers/ListHelper.c \
+	Helpers/TypeHelper.c IRC/Command.c IRC/Entity.c \
+	IRC/IRCConnection.c PluginManager.c PluginRegistrar.c \
+	SemesterLeistung_vala.stamp SmtpConfiguration.c main.c
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -58,15 +57,15 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_1 =
 am_SemesterLeistung_OBJECTS = main.$(OBJEXT) GlobalLog.$(OBJEXT) \
-	ConnectionHub.$(OBJEXT) PluginRegistrar.$(OBJEXT) \
-	PluginManager.$(OBJEXT) EmailSender.$(OBJEXT) \
-	SmtpConfiguration.$(OBJEXT) IRCConnection.$(OBJEXT) \
-	Command.$(OBJEXT) Entity.$(OBJEXT) IDataAccess.$(OBJEXT) \
-	SqliteData.$(OBJEXT) DateTimeConverter.$(OBJEXT) \
-	ListHelper.$(OBJEXT) TypeHelper.$(OBJEXT) Event.$(OBJEXT) \
-	StatusEvent.$(OBJEXT) ChangeNameEvent.$(OBJEXT) \
-	MessageEvent.$(OBJEXT) ServerConfiguration.$(OBJEXT) \
-	ConfigurationFile.$(OBJEXT) $(am__objects_1)
+	PluginRegistrar.$(OBJEXT) PluginManager.$(OBJEXT) \
+	EmailSender.$(OBJEXT) SmtpConfiguration.$(OBJEXT) \
+	IRCConnection.$(OBJEXT) Command.$(OBJEXT) Entity.$(OBJEXT) \
+	IDataAccess.$(OBJEXT) SqliteData.$(OBJEXT) \
+	DateTimeConverter.$(OBJEXT) ListHelper.$(OBJEXT) \
+	TypeHelper.$(OBJEXT) Event.$(OBJEXT) StatusEvent.$(OBJEXT) \
+	ChangeNameEvent.$(OBJEXT) MessageEvent.$(OBJEXT) \
+	ServerConfiguration.$(OBJEXT) ConfigurationFile.$(OBJEXT) \
+	$(am__objects_1)
 SemesterLeistung_OBJECTS = $(am_SemesterLeistung_OBJECTS)
 am__DEPENDENCIES_1 =
 SemesterLeistung_DEPENDENCIES = $(am__DEPENDENCIES_1) \
@@ -175,8 +174,8 @@ PO_IN_DATADIR_FALSE =
 PO_IN_DATADIR_TRUE = 
 RANLIB = ranlib
 SED = /bin/sed
-SEMESTERLEISTUNG_CFLAGS = -pthread -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  
-SEMESTERLEISTUNG_LIBS = -pthread -lgobject-2.0 -lgthread-2.0 -lrt -lglib-2.0  
+SEMESTERLEISTUNG_CFLAGS = -pthread -D_REENTRANT -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libxml2  
+SEMESTERLEISTUNG_LIBS = -pthread -Wl,--export-dynamic -lgio-2.0 -lgobject-2.0 -lgthread-2.0 -lsqlite3 -lgmodule-2.0 -lrt -lglib-2.0 -lxml2 -ldaemon  
 SET_MAKE = 
 SHELL = /bin/sh
 STRIP = strip
@@ -245,7 +244,6 @@ AM_CPPFLAGS = \
 SemesterLeistung_SOURCES = \
 	main.vala \
 	GlobalLog.vala \
-	ConnectionHub.vala \
 	PluginRegistrar.vala \
 	PluginManager.vala \
 	EmailSender.vala \
@@ -383,7 +381,6 @@ distclean-compile:
 include ./$(DEPDIR)/ChangeNameEvent.Po
 include ./$(DEPDIR)/Command.Po
 include ./$(DEPDIR)/ConfigurationFile.Po
-include ./$(DEPDIR)/ConnectionHub.Po
 include ./$(DEPDIR)/DateTimeConverter.Po
 include ./$(DEPDIR)/EmailSender.Po
 include ./$(DEPDIR)/Entity.Po
@@ -628,11 +625,6 @@ $(srcdir)/GlobalLog.c: $(srcdir)/SemesterLeistung_vala.stamp
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
 	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
 	fi
-$(srcdir)/ConnectionHub.c: $(srcdir)/SemesterLeistung_vala.stamp
-	@if test -f $@; then :; else \
-	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
-	  $(am__cd) $(srcdir) && $(MAKE) $(AM_MAKEFLAGS) SemesterLeistung_vala.stamp; \
-	fi
 $(srcdir)/PluginRegistrar.c: $(srcdir)/SemesterLeistung_vala.stamp
 	@if test -f $@; then :; else \
 	  rm -f $(srcdir)/SemesterLeistung_vala.stamp; \
@@ -850,7 +842,6 @@ maintainer-clean-generic:
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f Configuration/ConfigurationFile.c
 	-rm -f Configuration/ServerConfiguration.c
-	-rm -f ConnectionHub.c
 	-rm -f Data/IDataAccess.c
 	-rm -f Data/SqliteData.c
 	-rm -f EmailSender.c

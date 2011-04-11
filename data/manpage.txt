@@ -1,0 +1,78 @@
+.TH SEMESTERLEISTUNG VALA "April 11th, 2011" "" "Daemon"
+.SH NAME
+SemesterLeistung
+.SH SYNOPSIS
+.B SemesterLeistung [options]
+.SH OPTIONS
+
+.TP
+.B "-?, -?, --help" Show help options
+.TP
+.B "-l, --logger" Specifies which Log Library is going to be used. Defaults to the build-in Sqlite3 Library.
+.TP
+.B "-f, --logfile" Path to the Log File.
+.TP
+.B "-c, --config" Path to the configuration file.
+.TP
+.B "-D, --disable-daemon" Disable the Daemon functionality.
+.TP
+.B "-s, --servers" Specify the Servers and Channels to use. Use format: 'host(:port)/channel{,channel}'
+.TP
+.B "-i, --ignore-config" Ignore all settings from the configuration file.
+.TP
+.B "-o, --override-config" Override all Configuration options. Otherwise appends Servers and Nicknames.
+.TP
+.B "-n, --nick" The Nicknames used by the bot. Comma-Separated.
+.TP
+.B "-r, --real-name" The "Real name" sent to the IRC Servers.
+.TP
+.B "-h, --host" Override the hostname sent to the IRC Servers.
+.TP
+.B "-u, --username" Set the username sent to the IRC Servers.
+.TP	
+.B "--smtp" Set the smtp configuration using the format: 'sender/host(:port)'
+
+.SH DESCRIPTION
+An IRC-Bot Daemon. Logs basic information on one or multiple IRC Networks. Can send logs via E-Mail.
+.SH EXAMPLES
+.B Example configuration File:
+.nf
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<disable-daemon>true</disable-daemon>
+	<log-file>/home/user/data.db</log-file>
+	<log-library>/home/user/library.so</log-library>
+	<realname>SomeBot</realname>
+	<username>SomeBot</username>
+	<hostname>localhost</hostname>
+	<nicknames>
+		<nickname>irc-bot</nickname>
+		<nickname>irc-bot2</nickname>
+	</nicknames>
+	<smtp>
+		<host>localhost</host>
+		<port>25</port>
+		<sender>bot@bot.com</sender>
+	</smtp>
+	<servers>
+		<server>
+			<host>localhost</host>
+			<port>6667</port>
+			<channels>
+				<channel>#main</channel>
+				<channel>#other</channel>
+			</channels>
+		</server>
+		<server>
+			<host>google.com</host>
+			<port>6667</port>
+			<channels>
+				<channel>#main</channel>
+				<channel>#other</channel>
+			</channels>
+		</server>
+	</servers>
+</configuration>
+.fi
+.SH AUTHOR
+Simon Baumer
